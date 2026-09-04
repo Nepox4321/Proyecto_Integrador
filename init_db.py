@@ -97,7 +97,6 @@ def main():
 
 
 if __name__ == '__main__':
-    import sys
     exit_code = main()
     if exit_code == 0:
         print('\nListo. Ahora ejecuta:  py app.py')

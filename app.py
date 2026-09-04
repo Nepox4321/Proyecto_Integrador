@@ -27,7 +27,7 @@ from sqlalchemy import func, inspect, or_, text
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from config import Config
-from models import (db, Usuario, Sucursal, Vehiculo, Reserva, Pago, Venta,
+from models import (db, Usuario, Sucursal, Vehiculo, Reserva, Venta,
                     ModuloESP32, TelemetriaESP32, ComandoESP32, SemaforoFoco,
                     resumir_transacciones)
 

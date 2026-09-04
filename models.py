@@ -19,18 +19,18 @@ from sqlalchemy.dialects.mysql import INTEGER
 from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.model import DefaultMeta
 
-# Objeto ORM compartido por todos los modelos y enlazado desde app.py.
+# ORM compartido por todos los modelos y enlazado desde app.py.
 db = SQLAlchemy()
 
 
 class TipoTransaccion(str, Enum):
-    """Tipos de transaccion soportados por el dominio."""
+    """Tipos de transacción soportados por el dominio."""
     ALQUILER = 'alquiler'
     VENTA = 'venta'
 
 
 class EstadoVehiculo(str, Enum):
-    """Estados validos de una unidad de la flota."""
+    """Estados válidos de una unidad de la flota."""
     DISPONIBLE = 'disponible'
     RESERVADA = 'reservada'
     ALQUILADO = 'alquilado'
@@ -39,7 +39,7 @@ class EstadoVehiculo(str, Enum):
 
 
 class ComandoESP32Enum(str, Enum):
-    """Comandos que el panel puede enviar a un modulo ESP32."""
+    """Comandos que el panel puede enviar a un módulo ESP32."""
     PING = 'ping'
     REINICIAR = 'reiniciar'
     ENCENDER = 'encender'
@@ -48,7 +48,7 @@ class ComandoESP32Enum(str, Enum):
 
 
 class ModoSemaforo(str, Enum):
-    """Modo de control del semaforo del vehiculo."""
+    """Modo de control del semáforo del vehículo."""
     AUTO = 'auto'
     MANUAL = 'manual'
 
@@ -216,10 +216,10 @@ class Transaccion(DomainModel):
         ...
 
     def codigo_corto(self, incluir_prefijo=True):
-        """Devuelve el codigo completo o solo su consecutivo numerico.
+        """Devuelve el código completo o solo su consecutivo numérico.
 
-        Las sobrecargas documentan las dos formas validas de llamar al metodo;
-        la implementacion unica conserva el despacho polimorfico del prefijo.
+        Las sobrecargas documentan las dos formas válidas de llamar al método;
+        una sola implementación conserva el despacho polimórfico del prefijo.
         """
         consecutivo = f'{self.id:04d}'
         if not incluir_prefijo:
