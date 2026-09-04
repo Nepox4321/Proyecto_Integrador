@@ -8,11 +8,13 @@ Ejecutar:  python app.py
 
 Mapa de lectura:
     1) configuración y datos fallback
-    2) rutas publicas y checkout
-    3) cuenta de usuario
-    4) panel administrativo
-    5) calculo del semaforo y reglas IoT
-    6) API consumida por el ESP32
+    2) inicio, catálogo y checkout
+    3) perfil, autenticación y sesiones
+    4) panel administrativo y estadísticas
+    5) flota, reservas y clientes
+    6) gestión de módulos ESP32
+    7) cálculo del semáforo y reglas IoT
+    8) API consumida por el ESP32
 
 Las reglas de estados y temporizador estan documentadas en
 docs/REGLAS_NEGOCIO.md; el contrato HTTP esta en docs/API_ESP32.md.
@@ -180,8 +182,9 @@ def init_database():
             print(f'[AutoNova] AVISO: no se pudo conectar a la base de datos: {exc}')
             db.session.rollback()
             return False
-# ------------------------------- Rutas web --------------------------------
-# Cada ruta recibe HTTP, consulta modelos ORM y devuelve una plantilla o JSON.
+# -------------------------- Inicio y catálogo ------------------------------
+# Estas rutas son públicas. Consultan la flota y muestran las páginas que
+# puede visitar una persona sin iniciar sesión.
 @app.route('/')
 def inicio():
     """Inicio: consulta la tabla vehiculos y muestra los disponibles."""
@@ -236,6 +239,7 @@ def _usuario_actual():
     return u
 
 
+# Este destino permite continuar un checkout después de iniciar sesión.
 def _destino_post_login():
     """Tras iniciar sesión o registrarse: retoma un alquiler pendiente si lo había."""
     pend = session.pop('reserva_pendiente', None)
@@ -257,6 +261,8 @@ def vehiculo(id):
     return render_template('vehiculo.html', v=v, id=id)
 
 
+# ------------------------------- Checkout ---------------------------------
+# El checkout valida fechas, calcula el importe y crea una Reserva en MySQL.
 @app.route('/checkout/<int:id>', methods=['GET', 'POST'])
 def checkout(id):
     """Checkout del alquiler.
@@ -367,6 +373,8 @@ def confirmacion():
 
 
 # ------------------- Mi Perfil (cuenta del usuario) -------------------
+# Aquí se consultan reservas propias, se exporta el historial y se cancela
+# una reserva sin permitir acceder a los datos de otra cuenta.
 _MESES_ES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
              'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
 ESTADOS_RENTA_ACTIVA = ('pendiente', 'confirmada', 'en_uso')
@@ -536,8 +544,8 @@ def perfil_cancelar(rid):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # Autenticación: consulta el usuario, verifica el hash y crea la sesión.
     """Inicio de sesión: valida contra la tabla `usuarios` (password hasheado)."""
+    # Consulta el usuario, verifica el hash y crea la sesión.
     if request.method == 'POST':
         email = (request.form.get('email') or '').strip().lower()
         password = request.form.get('password') or ''
@@ -598,8 +606,8 @@ def login():
 
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
-    # Registro: valida datos del formulario y persiste un nuevo Usuario.
     """Registro: crea un usuario real (rol cliente) en la tabla `usuarios`."""
+    # Valida el formulario y persiste un nuevo Usuario.
     if request.method == 'POST':
         nombre = (request.form.get('nombre') or '').strip()
         apellidos = (request.form.get('apellidos') or '').strip()
@@ -653,10 +661,11 @@ def logout():
 
 
 def admin_required(view):
-    # Decorador de autorización: solo permite continuar a cuentas admin.
     """Decorador: exige sesión iniciada con rol admin para el panel."""
+    # Rechaza peticiones sin sesión o sin el rol administrativo.
     @wraps(view)
     def wrapped(*args, **kwargs):
+        """Comprueba la sesión antes de ejecutar la vista protegida."""
         if not session.get('email'):
             flash('Inicia sesión con tu cuenta de administrador para entrar al panel.', 'info')
             return redirect(url_for('login'))
@@ -668,6 +677,8 @@ def admin_required(view):
 
 
 # -------------------------- Panel administrativo --------------------------
+# El panel se divide en consultas de lectura y acciones POST. Todas las rutas
+# están protegidas por admin_required.
 @app.route('/admin')
 @admin_required
 def admin():
@@ -681,8 +692,8 @@ def admin():
 
 
 def _get_admin_stats():
-    # Las métricas se calculan con consultas ORM y se entregan al dashboard.
     """Recopila KPIs y listados para el dashboard desde la base de datos."""
+    # Las métricas se calculan con consultas ORM y se entregan al dashboard.
     try:
         total_usuarios = db.session.query(func.count(Usuario.id_usuario)).scalar() or 0
         total_vehiculos = db.session.query(func.count(Vehiculo.id)).scalar() or 0
@@ -741,7 +752,9 @@ def _get_admin_stats():
     }
 
 
-# ------------------- Panel admin: secciones y acciones -------------------
+# ------------------- Flota, reservas y clientes ----------------------------
+# Este bloque reúne las operaciones administrativas sobre las entidades
+# principales: vehículos, reservas y cuentas de usuario.
 ESTADOS_VEHICULO = ('disponible', 'reservada', 'alquilado', 'mantenimiento', 'baja')
 ESTADOS_RESERVA = ('pendiente', 'confirmada', 'en_uso', 'completada', 'cancelada')
 HEARTBEAT_LOCK_SECONDS = 30
@@ -756,6 +769,7 @@ def _sucursales():
         return []
 
 
+# ----- Consultas de listados administrativos -----
 @app.route('/admin/vehiculos')
 @admin_required
 def admin_vehiculos():
@@ -815,7 +829,9 @@ def _reiniciar_semaforo_auto(modulo_id):
     row.actualizado_en = datetime.utcnow()
 
 
-# ------------------------------- Módulos IoT -------------------------------
+# -------------------------- Gestión de módulos ESP32 -----------------------
+# Estas rutas registran hardware, asignan vehículos, controlan el semáforo,
+# encolan comandos y consultan la telemetría recibida.
 @app.route('/admin/esp32')
 @admin_required
 def admin_esp32():
@@ -923,6 +939,7 @@ def admin_esp32_nuevo():
     return redirect(destino)
 
 
+# ----- Edición y asignación del hardware -----
 @app.route('/admin/esp32/<int:mid>/editar', methods=['POST'])
 @admin_required
 def admin_esp32_editar(mid):
@@ -1027,6 +1044,7 @@ def admin_esp32_asignar(mid):
     return redirect(destino)
 
 
+# ----- Estado, semáforo, comandos e historial -----
 @app.route('/admin/esp32/<int:mid>/estado', methods=['POST'])
 @admin_required
 def admin_esp32_estado(mid):
@@ -1207,6 +1225,7 @@ def admin_esp32_telemetria(mid):
 @admin_required
 def admin_reportes():
     """Reportes básicos: ingresos, estados y ranking de la flota."""
+    # Este reporte mezcla Reserva y Venta mediante el contrato polimórfico.
     datos = {'ingresos': 0.0, 'total_reservas': 0, 'activas': 0,
              'tarifa_promedio': 0.0, 'por_estado': [], 'por_categoria': [],
              'top_flota': [], 'transacciones': []}
@@ -1479,7 +1498,9 @@ def admin_usuario_eliminar(uid):
     return redirect(destino)
 
 
-# ------------------------- API en tiempo real (ESP32) -------------------------
+# ---------------------- Reglas del semáforo y API ESP32 ---------------------
+# Primero se definen las funciones internas que localizan módulos y calculan
+# el estado; después las rutas exponen esos datos al panel y al firmware.
 def _buscar_modulo_por_ref(modulo_ref):
     """Localiza un módulo por id numérico o por código (ESP32-AUTONOVA-001).
 
@@ -1493,6 +1514,7 @@ def _buscar_modulo_por_ref(modulo_ref):
         ModuloESP32.codigo == ref.upper()).first()
 
 
+# El resultado de esta función es la fuente común para la página y el ESP32.
 def _estado_semaforo(modulo):
     """Semáforo físico que debe mostrar el módulo ESP32.
 
@@ -1639,7 +1661,7 @@ def _estado_semaforo(modulo):
     return base
 
 
-# ------------------------------- API ESP32 ---------------------------------
+# ------------------------------- API REST ESP32 ------------------------------
 # Estas rutas traducen JSON del hardware a objetos ORM y respuestas JSON.
 @app.route('/api/esp', methods=['GET'])
 def api_esp_list():
