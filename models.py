@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Modelos ORM (SQLAlchemy) de AutoNova.
 
 ALINEADO con el esquema real de la base `autonova`
@@ -18,6 +19,7 @@ from sqlalchemy.dialects.mysql import INTEGER
 from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.model import DefaultMeta
 
+# ORM compartido por todos los modelos y enlazado desde app.py.
 db = SQLAlchemy()
 
 
@@ -57,6 +59,7 @@ class DomainMeta(DefaultMeta, ABCMeta):
 
 class DomainModel(db.Model, metaclass=DomainMeta):
     """Base ORM para jerarquías con contratos abstractos formales."""
+    # Las clases hijas heredan comportamiento, pero esta base no crea tabla.
     __abstract__ = True
 
 
@@ -64,6 +67,7 @@ class Usuario(db.Model):
     """Clientes / administradores que usan la plataforma."""
     __tablename__ = 'usuarios'
 
+    # Cada db.Column se convierte en una columna de la tabla indicada abajo.
     id_usuario = db.Column(INTEGER(unsigned=True), primary_key=True, autoincrement=True)
     nombre = db.Column(db.String(120), nullable=False)
     apellidos = db.Column(db.String(120))
@@ -128,6 +132,7 @@ class Vehiculo(db.Model):
     veces_alquilado = db.Column(db.Integer, default=0)
     creado_en = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Permite usar vehiculo.sucursal y sucursal.vehiculos sin SQL manual.
     sucursal = db.relationship('Sucursal', backref='vehiculos')
 
     @property
@@ -171,12 +176,14 @@ class Transaccion(DomainModel):
     """
     __abstract__ = True
 
+    # Estas columnas se reutilizan en reservas y ventas concretas.
     id = db.Column(INTEGER(unsigned=True), primary_key=True, autoincrement=True)
     usuario_id = db.Column(INTEGER(unsigned=True), db.ForeignKey('usuarios.id_usuario'),
                            nullable=False)
     vehiculo_id = db.Column(INTEGER(unsigned=True), db.ForeignKey('vehiculos.id'),
                             nullable=False)
 
+    # ---- Contrato polimórfico (cada subclase lo implementa) ----
     @abstractmethod
     def tipo_transaccion(self):
         """Tipo de transacción: 'alquiler' (Reserva) o 'venta' (Venta)."""
@@ -237,9 +244,11 @@ class Reserva(Transaccion):
     creada_en = db.Column(db.DateTime, default=datetime.utcnow)
     inicio_alquiler = db.Column(db.DateTime)
 
+    # Relaciones ORM: SQLAlchemy resuelve las claves foráneas automáticamente.
     vehiculo = db.relationship('Vehiculo', backref='reservas')
     usuario = db.relationship('Usuario', backref='reservas')
 
+    # ---- Implementación polimórfica del contrato de `Transaccion` ----
     def tipo_transaccion(self):
         return 'alquiler'
 
@@ -325,6 +334,7 @@ class Venta(Transaccion):
     vehiculo = db.relationship('Vehiculo', backref='ventas')
     usuario = db.relationship('Usuario', backref='ventas')
 
+    # ---- Implementación polimórfica del contrato de `Transaccion` ----
     def tipo_transaccion(self):
         return 'venta'
 
@@ -378,6 +388,7 @@ class ModuloESP32(db.Model):
     firmware = db.Column(db.String(30), default='1.0.0')
     creado_en = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Un módulo puede estar asignado a una unidad de la flota.
     vehiculo = db.relationship('Vehiculo', backref='modulo')
 
     @property
@@ -401,6 +412,7 @@ class EntidadModuloESP32(DomainModel):
     """
     __abstract__ = True
 
+    # La familia IoT comparte la relación con modulos_esp32.
     id = db.Column(INTEGER(unsigned=True), primary_key=True, autoincrement=True)
     modulo_id = db.Column(INTEGER(unsigned=True),
                           db.ForeignKey('modulos_esp32.id'),
@@ -419,11 +431,12 @@ class TelemetriaESP32(EntidadModuloESP32):
     lat = db.Column(Numeric(10, 7))
     lng = db.Column(Numeric(10, 7))
     velocidad = db.Column(SmallInteger)
-    bateria = db.Column(db.SmallInteger)
+    bateria = db.Column(db.SmallInteger)   # tinyint en MySQL → SmallInteger en SA
     motor = db.Column(db.Enum('on', 'off'))
     rssi = db.Column(SmallInteger)
     leido_en = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Cada lectura queda vinculada al módulo que la envió.
     modulo = db.relationship('ModuloESP32', backref='telemetrias')
 
     def etiqueta_corta(self):
@@ -449,6 +462,7 @@ class ComandoESP32(EntidadModuloESP32):
     creado_en = db.Column(db.DateTime, default=datetime.utcnow)
     entregado_en = db.Column(db.DateTime)
 
+    # El panel crea comandos pendientes y el firmware los marca entregados.
     modulo = db.relationship('ModuloESP32', backref='comandos')
 
     def etiqueta_corta(self):
@@ -472,6 +486,7 @@ class SemaforoFoco(EntidadModuloESP32):
     """
     __tablename__ = 'semaforo_focos'
 
+    # Re-declaración de `modulo_id` (heredado): añade UNIQUE (1 fila/módulo)
     modulo_id = db.Column(INTEGER(unsigned=True),
                           db.ForeignKey('modulos_esp32.id'),
                           unique=True, nullable=False)
