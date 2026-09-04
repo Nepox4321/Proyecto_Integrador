@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """AutoNova · Aplicación Flask
 
 Sirve los templates Jinja conectados a la base de datos MySQL `autonova`.
@@ -36,7 +35,6 @@ from models import (db, Usuario, Sucursal, Vehiculo, Reserva, Venta,
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Vincular el ORM a Flask: desde aquí db.session usa la configuración MySQL.
 db.init_app(app)
 
 
@@ -52,9 +50,6 @@ def add_no_cache_headers(resp):
     return resp
 
 
-# ---------------------------------------------------------------------------
-# Datos fallback: se muestran si MySQL está vacío o temporalmente inaccesible.
-# ---------------------------------------------------------------------------
 SAMPLE_VEHICULOS = [
     {'id': 1, 'marca': 'Mercedes-Benz', 'modelo': 'Clase E 400', 'placa': 'MEC-72-11',
      'categoria': 'elegante', 'tarifa_dia': 128, 'imagen': 'vehiculo1.jpg', 'estado': 'disponible'},
@@ -76,9 +71,6 @@ SAMPLE_MODULOS = [
     {'id': 3, 'nombre': 'Módulo ESP32-003', 'codigo': 'ESP32-AUTONOVA-003', 'estado': 'apagado'},
 ]
 
-# ---------------------------------------------------------------------------
-# Cuenta administradora demo (se crea/actualiza automáticamente al arrancar)
-# ---------------------------------------------------------------------------
 ADMIN_EMAIL = 'admin@autonova.mx'
 ADMIN_PASSWORD = 'admin123'
 
@@ -100,15 +92,12 @@ def ensure_admin_user():
             db.session.commit()
             print(f'[AutoNova] Cuenta admin creada: {ADMIN_EMAIL} / {ADMIN_PASSWORD}')
         elif not check_password_hash(admin.password_hash or '', ADMIN_PASSWORD):
-            # Compatibilidad: actualiza el admin antiguo sin contraseña válida.
             admin.password_hash = generate_password_hash(ADMIN_PASSWORD)
             admin.rol = 'admin'
             admin.es_activo = True
             db.session.commit()
             print('[AutoNova] Contraseña de la cuenta admin actualizada.')
 
-        # Admins heredados del dump original con hash genérico (sin "$")
-        # reciben la contraseña demo para que puedan entrar al panel.
         for a in (db.session.query(Usuario)
                   .filter(Usuario.rol == 'admin', Usuario.email != ADMIN_EMAIL)
                   .all()):
@@ -123,7 +112,6 @@ def ensure_admin_user():
         print(f'[AutoNova] AVISO: no se pudo asegurar la cuenta admin: {exc}')
 
 
-# ------------------- Variables de contexto globales -------------------
 @app.context_processor
 def inject_globals():
     """Expone datos de sesión y configuración común a todas las plantillas."""
@@ -165,12 +153,10 @@ def _asegurar_columnas_reserva():
                 'ALTER TABLE reservas ADD COLUMN inicio_alquiler DATETIME NULL'))
 
 
-# ------------------- Inicialización de la base de datos -------------------
 def init_database():
     """Crea las tablas si no existen cuando entra en contexto de la app."""
     with app.app_context():
         try:
-            # SQLAlchemy crea las tablas declaradas en models.py que falten.
             db.create_all()
             _asegurar_columnas_reserva()
             _asegurar_semaforos()
@@ -178,13 +164,9 @@ def init_database():
             ensure_admin_user()
             return True
         except Exception as exc:
-            # No frenamos el arranque: las vistas funcionan con datos de ejemplo.
             print(f'[AutoNova] AVISO: no se pudo conectar a la base de datos: {exc}')
             db.session.rollback()
             return False
-# -------------------------- Inicio y catálogo ------------------------------
-# Estas rutas son públicas. Consultan la flota y muestran las páginas que
-# puede visitar una persona sin iniciar sesión.
 @app.route('/')
 def inicio():
     """Inicio: consulta la tabla vehiculos y muestra los disponibles."""
@@ -239,7 +221,6 @@ def _usuario_actual():
     return u
 
 
-# Este destino permite continuar un checkout después de iniciar sesión.
 def _destino_post_login():
     """Tras iniciar sesión o registrarse: retoma un alquiler pendiente si lo había."""
     pend = session.pop('reserva_pendiente', None)
@@ -261,8 +242,6 @@ def vehiculo(id):
     return render_template('vehiculo.html', v=v, id=id)
 
 
-# ------------------------------- Checkout ---------------------------------
-# El checkout valida fechas, calcula el importe y crea una Reserva en MySQL.
 @app.route('/checkout/<int:id>', methods=['GET', 'POST'])
 def checkout(id):
     """Checkout del alquiler.
@@ -295,7 +274,6 @@ def checkout(id):
     if request.method == 'POST':
         from datetime import date
 
-        # --- Validación de fechas (como un sitio de renta real) ---
         try:
             f1 = date.fromisoformat(request.form.get('fecha_inicio') or '')
             f2 = date.fromisoformat(request.form.get('fecha_fin') or '')
@@ -312,9 +290,7 @@ def checkout(id):
         tarifa = float(v.tarifa_dia) if v.tarifa_dia else 0.0
         total = round(dias * tarifa, 2)
 
-        # --- La reserva se registra a la cuenta con sesión iniciada ---
         try:
-            # Completa el perfil registrado si faltaban datos
             if not user.telefono and (request.form.get('telefono') or '').strip():
                 user.telefono = request.form.get('telefono').strip()
             if not user.licencia and (request.form.get('licencia') or '').strip():
@@ -357,7 +333,6 @@ def checkout(id):
               f'datos a tu cuenta, {nombre_completo}!', 'ok')
         return redirect(url_for('confirmacion'))
 
-    # GET: checkout con los datos de la cuenta precargados
     session.pop('reserva_pendiente', None)
     return render_template('checkout.html', v=v, id=id, user=user)
 
@@ -372,9 +347,6 @@ def confirmacion():
     return render_template('confirmacion.html', **d)
 
 
-# ------------------- Mi Perfil (cuenta del usuario) -------------------
-# Aquí se consultan reservas propias, se exporta el historial y se cancela
-# una reserva sin permitir acceder a los datos de otra cuenta.
 _MESES_ES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
              'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
 ESTADOS_RENTA_ACTIVA = ('pendiente', 'confirmada', 'en_uso')
@@ -406,7 +378,6 @@ def perfil():
     except Exception:
         reservas = []
 
-    # Renta activa: la más reciente sin completar/cancelar
     activa = next((r for r in reservas if r.estado in ESTADOS_RENTA_ACTIVA), None)
     historial = [r for r in reservas if r is not activa]
 
@@ -464,7 +435,7 @@ def perfil():
     no_canceladas = [r for r in reservas if r.estado != 'cancelada']
     stats = {
         'rentas': len(no_canceladas),
-        'rating': 4.5 + (user.id_usuario % 6) / 10.0,  # determinista (sin columna en BD)
+        'rating': 4.5 + (user.id_usuario % 6) / 10.0,
         'gastado': sum(float(r.total or 0) for r in no_canceladas),
         'miembro': (user.creado_en.strftime('%Y') if user.creado_en
                     else str(hoy.year)),
@@ -545,7 +516,6 @@ def perfil_cancelar(rid):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Inicio de sesión: valida contra la tabla `usuarios` (password hasheado)."""
-    # Consulta el usuario, verifica el hash y crea la sesión.
     if request.method == 'POST':
         email = (request.form.get('email') or '').strip().lower()
         password = request.form.get('password') or ''
@@ -560,8 +530,6 @@ def login():
             flash('Correo o contraseña incorrectos.', 'error')
             return render_template('login.html'), 401
 
-        # Cuentas heredadas del dump original con hash genérico (sin "$"):
-        # el primer login guarda la contraseña que el usuario escriba.
         if not _es_hash_valido(usuario.password_hash):
             if not password:
                 flash('Escribe una contraseña para activar tu cuenta.', 'error')
@@ -607,7 +575,6 @@ def login():
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
     """Registro: crea un usuario real (rol cliente) en la tabla `usuarios`."""
-    # Valida el formulario y persiste un nuevo Usuario.
     if request.method == 'POST':
         nombre = (request.form.get('nombre') or '').strip()
         apellidos = (request.form.get('apellidos') or '').strip()
@@ -662,7 +629,6 @@ def logout():
 
 def admin_required(view):
     """Decorador: exige sesión iniciada con rol admin para el panel."""
-    # Rechaza peticiones sin sesión o sin el rol administrativo.
     @wraps(view)
     def wrapped(*args, **kwargs):
         """Comprueba la sesión antes de ejecutar la vista protegida."""
@@ -676,9 +642,6 @@ def admin_required(view):
     return wrapped
 
 
-# -------------------------- Panel administrativo --------------------------
-# El panel se divide en consultas de lectura y acciones POST. Todas las rutas
-# están protegidas por admin_required.
 @app.route('/admin')
 @admin_required
 def admin():
@@ -693,7 +656,6 @@ def admin():
 
 def _get_admin_stats():
     """Recopila KPIs y listados para el dashboard desde la base de datos."""
-    # Las métricas se calculan con consultas ORM y se entregan al dashboard.
     try:
         total_usuarios = db.session.query(func.count(Usuario.id_usuario)).scalar() or 0
         total_vehiculos = db.session.query(func.count(Vehiculo.id)).scalar() or 0
@@ -718,10 +680,8 @@ def _get_admin_stats():
          kpi_reservadas, conectados, esperando, apagados) = (0, 0, 0, 0, 0, 0, 0, 0)
         flota, modulos = [], []
 
-    # Preparar listado de módulos para el panel (con heartbeat en ms)
     lista_modulos = []
     for m in (modulos if modulos else SAMPLE_MODULOS):
-        # Soporta objetos ORM y diccionarios (fallback SAMPLE):
         if isinstance(m, dict):
             mid = m.get('id'); nombre = m.get('nombre'); codigo = m.get('codigo')
             estado = m.get('estado'); clase = m.get('clase', 'warn'); hb = None
@@ -752,9 +712,6 @@ def _get_admin_stats():
     }
 
 
-# ------------------- Flota, reservas y clientes ----------------------------
-# Este bloque reúne las operaciones administrativas sobre las entidades
-# principales: vehículos, reservas y cuentas de usuario.
 ESTADOS_VEHICULO = ('disponible', 'reservada', 'alquilado', 'mantenimiento', 'baja')
 ESTADOS_RESERVA = ('pendiente', 'confirmada', 'en_uso', 'completada', 'cancelada')
 HEARTBEAT_LOCK_SECONDS = 30
@@ -769,7 +726,6 @@ def _sucursales():
         return []
 
 
-# ----- Consultas de listados administrativos -----
 @app.route('/admin/vehiculos')
 @admin_required
 def admin_vehiculos():
@@ -829,9 +785,6 @@ def _reiniciar_semaforo_auto(modulo_id):
     row.actualizado_en = datetime.utcnow()
 
 
-# -------------------------- Gestión de módulos ESP32 -----------------------
-# Estas rutas registran hardware, asignan vehículos, controlan el semáforo,
-# encolan comandos y consultan la telemetría recibida.
 @app.route('/admin/esp32')
 @admin_required
 def admin_esp32():
@@ -856,7 +809,7 @@ def admin_esp32():
 
     lista = []
     for m in (modulos or SAMPLE_MODULOS):
-        if isinstance(m, dict):                       # fallback sin BD
+        if isinstance(m, dict):
             lista.append({'id': m.get('id'), 'nombre': m.get('nombre'),
                           'codigo': m.get('codigo'), 'estado': m.get('estado'),
                           'clase': m.get('clase', 'warn'), 'vehiculo': None,
@@ -926,7 +879,7 @@ def admin_esp32_nuevo():
             endpoint_api=(request.form.get('endpoint_api') or '').strip()
                          or 'http://192.168.1.105:5000/api')
         db.session.add(m)
-        db.session.flush()   # obtiene m.id sin cerrar la transacción
+        db.session.flush()
         db.session.add(SemaforoFoco(modulo_id=m.id,
                                     foco_activo='verde', modo='auto'))
         db.session.commit()
@@ -939,7 +892,6 @@ def admin_esp32_nuevo():
     return redirect(destino)
 
 
-# ----- Edición y asignación del hardware -----
 @app.route('/admin/esp32/<int:mid>/editar', methods=['POST'])
 @admin_required
 def admin_esp32_editar(mid):
@@ -974,7 +926,7 @@ def admin_esp32_editar(mid):
         m.nombre = nombre
         if m.vehiculo_id != vehiculo_id:
             m.vehiculo_id = vehiculo_id
-            _reiniciar_semaforo_auto(m.id)   # evita quedar en foco manual
+            _reiniciar_semaforo_auto(m.id)
         m.firmware = ((request.form.get('firmware') or '').strip()
                       or m.firmware)
         m.endpoint_api = ((request.form.get('endpoint_api') or '').strip()
@@ -1013,7 +965,6 @@ def admin_esp32_asignar(mid):
                 flash('Vehículo no válido.', 'error')
                 return redirect(destino)
 
-        # Relación 1:1 — el vehículo ya no puede estar en otro módulo
         if (vehiculo_id and vehiculo_id != m.vehiculo_id
                 and db.session.query(ModuloESP32)
                 .filter(ModuloESP32.vehiculo_id == vehiculo_id,
@@ -1021,7 +972,6 @@ def admin_esp32_asignar(mid):
             flash('Ese vehículo ya tiene otro módulo asignado.', 'error')
             return redirect(destino)
 
-        # Verificar que el vehículo exista
         if vehiculo_id is not None:
             v = db.session.get(Vehiculo, vehiculo_id)
             if v is None:
@@ -1029,7 +979,7 @@ def admin_esp32_asignar(mid):
                 return redirect(destino)
 
         m.vehiculo_id = vehiculo_id
-        _reiniciar_semaforo_auto(m.id)   # siempre a automático al asignar
+        _reiniciar_semaforo_auto(m.id)
         db.session.commit()
 
         if vehiculo_id:
@@ -1044,7 +994,6 @@ def admin_esp32_asignar(mid):
     return redirect(destino)
 
 
-# ----- Estado, semáforo, comandos e historial -----
 @app.route('/admin/esp32/<int:mid>/estado', methods=['POST'])
 @admin_required
 def admin_esp32_estado(mid):
@@ -1110,8 +1059,6 @@ def admin_esp32_semaforo(mid):
                 except ValueError:
                     minutos = 0
                 if minutos > 0:
-                    # Consistente con la lectura: datetime.now() (hora local),
-                    # igual que el cálculo automático de las reservas.
                     row.fin = datetime.now() + timedelta(minutes=minutos)
                     row.segundos_restantes = minutos * 60
             row.actualizado_en = datetime.utcnow()
@@ -1225,7 +1172,6 @@ def admin_esp32_telemetria(mid):
 @admin_required
 def admin_reportes():
     """Reportes básicos: ingresos, estados y ranking de la flota."""
-    # Este reporte mezcla Reserva y Venta mediante el contrato polimórfico.
     datos = {'ingresos': 0.0, 'total_reservas': 0, 'activas': 0,
              'tarifa_promedio': 0.0, 'por_estado': [], 'por_categoria': [],
              'top_flota': [], 'transacciones': []}
@@ -1244,9 +1190,6 @@ def admin_reportes():
                          .group_by(Vehiculo.categoria).all())
         top_flota = (db.session.query(Vehiculo)
                      .order_by(Vehiculo.veces_alquilado.desc()).limit(5).all())
-        # Transacciones recientes (Reservas + Ventas) — bloque POLIMÓRFICO:
-        # `resumen()` se invoca igual sobre objetos de distinta clase y cada
-        # una aporta su propia implementación (Reserva/Venta → Transaccion).
         recientes = (db.session.query(Reserva)
                      .order_by(Reserva.creada_en.desc()).limit(5).all())
         ventas = (db.session.query(Venta)
@@ -1498,9 +1441,6 @@ def admin_usuario_eliminar(uid):
     return redirect(destino)
 
 
-# ---------------------- Reglas del semáforo y API ESP32 ---------------------
-# Primero se definen las funciones internas que localizan módulos y calculan
-# el estado; después las rutas exponen esos datos al panel y al firmware.
 def _buscar_modulo_por_ref(modulo_ref):
     """Localiza un módulo por id numérico o por código (ESP32-AUTONOVA-001).
 
@@ -1514,7 +1454,6 @@ def _buscar_modulo_por_ref(modulo_ref):
         ModuloESP32.codigo == ref.upper()).first()
 
 
-# El resultado de esta función es la fuente común para la página y el ESP32.
 def _estado_semaforo(modulo):
     """Semáforo físico que debe mostrar el módulo ESP32.
 
@@ -1540,7 +1479,6 @@ def _estado_semaforo(modulo):
             'reserva_estado': None, 'segundos_restantes': None,
             'fin': None, 'detalle': 'Sin reservas activas'}
 
-    # --- Fila de la tabla semaforo_focos (fuente de verdad en BD) ---
     try:
         row = db.session.query(SemaforoFoco).filter_by(
             modulo_id=modulo.id).first()
@@ -1552,8 +1490,6 @@ def _estado_semaforo(modulo):
     except Exception:
         row = None
 
-    # Un alquiler iniciado tiene prioridad sobre el modo manual: el temporizador
-    # debe seguir visible aunque el foco manual anterior haya quedado guardado.
     reserva_en_uso = None
     try:
         vehiculo_modulo = modulo.vehiculo
@@ -1565,7 +1501,6 @@ def _estado_semaforo(modulo):
     except Exception:
         reserva_en_uso = None
 
-    # Modo MANUAL: el admin fijó el foco desde el panel
     if row is not None and row.modo == 'manual' and reserva_en_uso is None:
         base['luz'] = row.foco_activo
         base['tipo'] = 'manual'
@@ -1582,7 +1517,6 @@ def _estado_semaforo(modulo):
             base['detalle'] = f'Foco {row.foco_activo} (manual)'
         return base
 
-    # Modo AUTO: se calcula según las reservas del vehículo asignado
     try:
         vehiculo = modulo.vehiculo
     except Exception:
@@ -1598,7 +1532,6 @@ def _estado_semaforo(modulo):
                                                'en_uso']),
                            or_(Reserva.tipo.is_(None), Reserva.tipo != 'venta'))
                    .order_by(Reserva.creada_en.desc()).all())
-        # Prioridad: alquiler en curso > pendiente > confirmada
         activas.sort(key=lambda rr: (0 if rr.estado == 'en_uso'
                                      else (1 if rr.estado == 'pendiente'
                                            else 2)))
@@ -1633,9 +1566,6 @@ def _estado_semaforo(modulo):
                     row.foco_activo = 'verde'
                     row.modo = 'auto'
                 db.session.commit()
-                # La primera respuesta posterior al vencimiento debe ser roja
-                # para que el ESP32 pueda activar LED y buzzer. La siguiente
-                # consulta ya encontrara la reserva completada y devolvera verde.
         else:
             base['luz'] = 'amarillo'
             base['tipo'] = 'en_uso'
@@ -1647,7 +1577,6 @@ def _estado_semaforo(modulo):
                            if r.estado == 'pendiente'
                            else f'AN-{r.id:04d} confirmada')
 
-    # Guardar el resultado en la tabla para que la página lo lea desde la BD
     if row is not None:
         try:
             row.foco_activo = base['luz']
@@ -1661,8 +1590,6 @@ def _estado_semaforo(modulo):
     return base
 
 
-# ------------------------------- API REST ESP32 ------------------------------
-# Estas rutas traducen JSON del hardware a objetos ORM y respuestas JSON.
 @app.route('/api/esp', methods=['GET'])
 def api_esp_list():
     """Devuelve el estado actual de todos los módulos ESP32 (para polling)."""
@@ -1754,13 +1681,11 @@ def api_esp_heartbeat(modulo_ref):
 
         m.estado = payload.get('estado', 'conectado')
         m.ultimo_heartbeat = datetime.utcnow()
-        # IP del módulo: la manda el ESP32 en el JSON o se detecta de la conexión
         m.ip_local = (payload.get('ip') or request.remote_addr
                       or m.ip_local)
         print(f'[ESP32] Heartbeat módulo {m.id} ({m.codigo}) desde '
               f'{m.ip_local} · estado={m.estado}')
 
-        # Guardar lectura de telemetría en tiempo real
         tele = TelemetriaESP32(
             modulo_id=m.id,
             lat=payload.get('lat'),

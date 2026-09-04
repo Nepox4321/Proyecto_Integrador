@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Utilidad: crea las tablas en la base MySQL `autonova` e inserta datos semilla.
 Uso:
     py init_db.py            # crea tablas + puebla datos de ejemplo
@@ -18,9 +17,6 @@ from models import db, Usuario, Sucursal, Vehiculo, ModuloESP32
 def seed():
     """Datos de ejemplo para poder visualizar la app sin escritura manual."""
     with app.app_context():
-        # Cada bloque comprueba si la tabla ya tiene datos antes de insertar.
-        # Así el comando normal es repetible sin duplicar el contenido inicial.
-        # Sucursales
         if Sucursal.query.count() == 0:
             db.session.add_all([
                 Sucursal(nombre='Monterrey Centro', ciudad='Monterrey',
@@ -31,7 +27,6 @@ def seed():
             db.session.commit()
             print('  + Sucursales de ejemplo')
 
-        # Usuario administrador de ejemplo (credenciales demo de app.py)
         if Usuario.query.count() == 0:
             db.session.add(Usuario(
                 nombre='Admin', apellidos='AutoNova',
@@ -41,7 +36,6 @@ def seed():
             db.session.commit()
             print(f'  + Usuario admin de ejemplo ({ADMIN_EMAIL} / {ADMIN_PASSWORD})')
 
-        # Vehículos de ejemplo
         if Vehiculo.query.count() == 0:
             mk = [
                 ('Mercedes-Benz', 'Clase E 400', 'MEC-72-11', 'elegante', 128, 'vehiculo1.jpg'),
@@ -61,7 +55,6 @@ def seed():
             db.session.commit()
             print('  + 6 vehículos de ejemplo')
 
-        # Módulos ESP32
         if ModuloESP32.query.count() == 0:
             db.session.add_all([
                 ModuloESP32(codigo='ESP32-AUTONOVA-001', nombre='Módulo ESP32-001',
@@ -77,14 +70,12 @@ def seed():
 
 
 def main():
-    # Los argumentos controlan si se conserva o se reinicia la base de desarrollo.
     args = sys.argv[1:]
     reset = '--reset' in args
     seed_data = '--create' not in args
 
     if reset:
         with app.app_context():
-            # drop_all elimina las tablas: usar --reset solo en desarrollo.
             db.drop_all()
         print('Tablas eliminadas (reset).')
 
