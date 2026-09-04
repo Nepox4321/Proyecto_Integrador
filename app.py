@@ -34,7 +34,7 @@ from models import (db, Usuario, Sucursal, Vehiculo, Reserva, Pago, Venta,
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Vincular la instancia de SQLAlchemy a la aplicación
+# Vincular el ORM a Flask: desde aquí db.session usa la configuración MySQL.
 db.init_app(app)
 
 
@@ -51,7 +51,7 @@ def add_no_cache_headers(resp):
 
 
 # ---------------------------------------------------------------------------
-# Datos semilla: si la BD está vacía o inaccesible, las vistas muestran ejemplos
+# Datos fallback: se muestran si MySQL está vacío o temporalmente inaccesible.
 # ---------------------------------------------------------------------------
 SAMPLE_VEHICULOS = [
     {'id': 1, 'marca': 'Mercedes-Benz', 'modelo': 'Clase E 400', 'placa': 'MEC-72-11',
@@ -168,6 +168,7 @@ def init_database():
     """Crea las tablas si no existen cuando entra en contexto de la app."""
     with app.app_context():
         try:
+            # SQLAlchemy crea las tablas declaradas en models.py que falten.
             db.create_all()
             _asegurar_columnas_reserva()
             _asegurar_semaforos()
@@ -179,7 +180,8 @@ def init_database():
             print(f'[AutoNova] AVISO: no se pudo conectar a la base de datos: {exc}')
             db.session.rollback()
             return False
-# ------------------------------- Rutas --------------------------------
+# ------------------------------- Rutas web --------------------------------
+# Cada ruta recibe HTTP, consulta modelos ORM y devuelve una plantilla o JSON.
 @app.route('/')
 def inicio():
     """Inicio: consulta la tabla vehiculos y muestra los disponibles."""
@@ -534,6 +536,7 @@ def perfil_cancelar(rid):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Autenticación: consulta el usuario, verifica el hash y crea la sesión.
     """Inicio de sesión: valida contra la tabla `usuarios` (password hasheado)."""
     if request.method == 'POST':
         email = (request.form.get('email') or '').strip().lower()
@@ -595,6 +598,7 @@ def login():
 
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
+    # Registro: valida datos del formulario y persiste un nuevo Usuario.
     """Registro: crea un usuario real (rol cliente) en la tabla `usuarios`."""
     if request.method == 'POST':
         nombre = (request.form.get('nombre') or '').strip()
@@ -649,6 +653,7 @@ def logout():
 
 
 def admin_required(view):
+    # Decorador de autorización: solo permite continuar a cuentas admin.
     """Decorador: exige sesión iniciada con rol admin para el panel."""
     @wraps(view)
     def wrapped(*args, **kwargs):
@@ -662,6 +667,7 @@ def admin_required(view):
     return wrapped
 
 
+# -------------------------- Panel administrativo --------------------------
 @app.route('/admin')
 @admin_required
 def admin():
@@ -675,6 +681,7 @@ def admin():
 
 
 def _get_admin_stats():
+    # Las métricas se calculan con consultas ORM y se entregan al dashboard.
     """Recopila KPIs y listados para el dashboard desde la base de datos."""
     try:
         total_usuarios = db.session.query(func.count(Usuario.id_usuario)).scalar() or 0
@@ -808,6 +815,7 @@ def _reiniciar_semaforo_auto(modulo_id):
     row.actualizado_en = datetime.utcnow()
 
 
+# ------------------------------- Módulos IoT -------------------------------
 @app.route('/admin/esp32')
 @admin_required
 def admin_esp32():
@@ -1631,6 +1639,8 @@ def _estado_semaforo(modulo):
     return base
 
 
+# ------------------------------- API ESP32 ---------------------------------
+# Estas rutas traducen JSON del hardware a objetos ORM y respuestas JSON.
 @app.route('/api/esp', methods=['GET'])
 def api_esp_list():
     """Devuelve el estado actual de todos los módulos ESP32 (para polling)."""

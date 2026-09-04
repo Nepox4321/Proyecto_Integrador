@@ -19,17 +19,17 @@ except ImportError:
 
 
 class Config:
-    # --- Flask ---
+    # --- Flask: la clave firma la sesión del navegador ---
     SECRET_KEY = os.environ.get('SECRET_KEY', 'cambia-esta-clave-en-produccion')
 
-    # --- MySQL / Base de datos ---
+    # --- MySQL: estos valores construyen la URL que usará SQLAlchemy ---
     DB_HOST = os.environ.get('DB_HOST', 'localhost')
     DB_PORT = os.environ.get('DB_PORT', '3306')
     DB_USER = os.environ.get('DB_USER', 'root')
     DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
     DB_NAME = os.environ.get('DB_NAME', 'autonova')
 
-    # mysql+pymysql driver (PyMySQL). quote_plus escapa caracteres del password.
+    # PyMySQL es el driver; quote_plus evita romper la URL con caracteres especiales.
     SQLALCHEMY_DATABASE_URI = (
         f'mysql+pymysql://{DB_USER}:{quote_plus(DB_PASSWORD)}'
         f'@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4'
@@ -40,5 +40,5 @@ class Config:
         'pool_pre_ping': True,
     }
 
-    # --- Endpoint de telemetría ESP32 ---
+    # --- API remota que consultan los módulos ESP32 ---
     ESP32_ENDPOINT = os.environ.get('ESP32_ENDPOINT', 'http://192.168.100.93:5000/api')

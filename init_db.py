@@ -18,6 +18,8 @@ from models import db, Usuario, Sucursal, Vehiculo, ModuloESP32
 def seed():
     """Datos de ejemplo para poder visualizar la app sin escritura manual."""
     with app.app_context():
+        # Cada bloque comprueba si la tabla ya tiene datos antes de insertar.
+        # Así el comando normal es repetible sin duplicar el contenido inicial.
         # Sucursales
         if Sucursal.query.count() == 0:
             db.session.add_all([
@@ -75,12 +77,14 @@ def seed():
 
 
 def main():
+    # Los argumentos controlan si se conserva o se reinicia la base de desarrollo.
     args = sys.argv[1:]
     reset = '--reset' in args
     seed_data = '--create' not in args
 
     if reset:
         with app.app_context():
+            # drop_all elimina las tablas: usar --reset solo en desarrollo.
             db.drop_all()
         print('Tablas eliminadas (reset).')
 
