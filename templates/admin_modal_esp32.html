@@ -1,0 +1,96 @@
+<!-- Modales de gestión de módulos ESP32 (incluidos desde admin_esp32.html) -->
+
+<!-- Modal: registrar módulo ESP32 -->
+<div class="modal fade" id="modalEspNuevo" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <form class="modal-content" method="post" action="{{ url_for('admin_esp32_nuevo') }}">
+      <input type="hidden" name="destino" value="{{ destino or url_for('admin_esp32') }}">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Registrar módulo ESP32</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Código *</label>
+            <input class="form-control" name="codigo" required placeholder="ESP32-AUTONOVA-004" style="text-transform:uppercase">
+            <div class="form-text">Identificador único del hardware.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Nombre *</label>
+            <input class="form-control" name="nombre" required placeholder="Módulo ESP32-004">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Vehículo asignado</label>
+            <select class="form-select" name="vehiculo_id">
+              <option value="">— Sin asignar —</option>
+              {% for v in vehiculos %}
+              <option value="{{ v.id }}">{{ v.marca }} {{ v.modelo }} ({{ v.placa }})</option>
+              {% endfor %}
+            </select>
+            <div class="form-text">Cada vehículo admite un solo módulo.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Firmware</label>
+            <input class="form-control" name="firmware" placeholder="1.0.0">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Endpoint del servidor</label>
+            <input class="form-control" name="endpoint_api" placeholder="http://192.168.1.105:5000/api">
+            <div class="form-text">Dirección que usa el Arduino para enviar telemetría.</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-an">Registrar módulo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: editar módulo ESP32 (se rellena con JS desde la tarjeta) -->
+<div class="modal fade" id="modalEspEditar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <form class="modal-content" method="post" action="" id="formEspEditar">
+      <input type="hidden" name="destino" value="{{ destino or url_for('admin_esp32') }}">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Editar módulo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Código *</label>
+            <input class="form-control" name="codigo" id="editCodigo" required style="text-transform:uppercase">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Nombre *</label>
+            <input class="form-control" name="nombre" id="editNombre" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Vehículo asignado</label>
+            <select class="form-select" name="vehiculo_id" id="editVehiculo">
+              <option value="">— Sin asignar —</option>
+              {% for v in vehiculos %}
+              <option value="{{ v.id }}">{{ v.marca }} {{ v.modelo }} ({{ v.placa }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Firmware</label>
+            <input class="form-control" name="firmware" id="editFirmware">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Endpoint del servidor</label>
+            <input class="form-control" name="endpoint_api" id="editEndpoint">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-an">Guardar cambios</button>
+      </div>
+    </form>
+  </div>
+</div>

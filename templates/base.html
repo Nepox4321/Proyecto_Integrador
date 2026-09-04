@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}AutoNova{% endblock %} · AutoNova</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body data-page="{% block page %}{% endblock %}" {% block body_attrs %}{% endblock %}>
+
+  {% block navbar %}
+  <nav class="navbar navbar-expand-lg an2-navbar sticky-top">
+    <div class="container">
+      <a class="navbar-brand an2-brand" href="{{ url_for('inicio') }}">
+        <span class="an2-logo">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M5.1 11.2 6.7 6.9A2 2 0 0 1 8.6 5.5h6.8a2 2 0 0 1 1.9 1.4l1.6 4.3c.9.3 1.7 1.1 1.7 2.1v3.2a.8.8 0 0 1-.8.8h-1.4a2.2 2.2 0 0 1-4.3 0H9.9a2.2 2.2 0 0 1-4.3 0H4.2a.8.8 0 0 1-.8-.8v-3.2c0-1 .8-1.8 1.7-2.1Zm2-.2h9.8l-1.2-3.3a.7.7 0 0 0-.7-.5H9a.7.7 0 0 0-.7.5Z"/></svg>
+        </span>
+        Auto<span class="an2-green">Nova</span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#anNav"
+              aria-controls="anNav" aria-expanded="false" aria-label="Abrir menú">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="anNav">
+        <ul class="navbar-nav mx-auto">
+          <li class="nav-item"><a class="nav-link" data-active="inicio" href="{{ url_for('inicio') }}">Inicio</a></li>
+          <li class="nav-item"><a class="nav-link" data-active="doblaje" href="{{ url_for('doblaje') }}">Estudio de voz</a></li>
+          {% if session_user %}
+          <li class="nav-item"><a class="nav-link" data-active="flota" href="{{ url_for('catalogo') }}">Flota <span class="chev">▾</span></a></li>
+          <li class="nav-item"><a class="nav-link" data-active="alquilar" href="{{ url_for('catalogo') }}">Alquilar <span class="chev">▾</span></a></li>
+          <li class="nav-item"><a class="nav-link" data-active="ventas" href="{{ url_for('catalogo') }}">Ventas <span class="chev">▾</span></a></li>
+          <li class="nav-item"><a class="nav-link" data-active="nosotros" href="{{ url_for('inicio') }}">Nosotros</a></li>
+          <li class="nav-item"><a class="nav-link an4-navcta" data-active="perfil" href="{{ url_for('perfil') }}">Mi Cuenta</a></li>
+          {% else %}
+          <li class="nav-item"><a class="nav-link" data-active="flota" href="{{ url_for('catalogo') }}">Catálogo</a></li>
+          <li class="nav-item"><a class="nav-link" data-active="doblaje" href="{{ url_for('doblaje') }}">Estudio de voz</a></li>
+          {% endif %}
+        </ul>
+
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          {% if not session_user %}
+          <a href="{{ url_for('login') }}" class="an2-btn an2-btn-outline">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 11.5A3.75 3.75 0 1 0 8.25 7.75 3.75 3.75 0 0 0 12 11.5Zm0 2c-3.7 0-6.75 1.9-6.75 4.25V20h13.5v-2.25c0-2.35-3.05-4.25-6.75-4.25Z"/></svg>
+            Iniciar sesión
+          </a>
+          <a href="{{ url_for('registro') }}" class="an2-btn an2-btn-green">Registrarse</a>
+          {% else %}
+          <a href="{{ url_for('perfil') }}" class="an2-user an2-user-link" title="Mi Perfil">👋 {{ session_user }}</a>
+          {% if session_rol == 'admin' %}
+          <a href="{{ url_for('admin') }}" class="an2-chip-admin">Panel Admin</a>
+          {% endif %}
+          <a href="{{ url_for('logout') }}" class="an2-btn an2-btn-outline">Salir</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+  {% endblock %}
+
+  <main>
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% if mensajes %}
+        <div class="container mt-3">
+          {% for categoria, msg in mensajes %}
+            <div class="alert alert-{{ 'success' if categoria == 'ok' else ('danger' if categoria == 'error' else 'info') }} alert-dismissible fade show" role="alert">
+              {{ msg }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block footer %}
+  <footer class="an2-footer">
+    <div class="container py-5">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <a class="navbar-brand an2-brand mb-3" href="{{ url_for('inicio') }}">
+            <span class="an2-logo">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M5.1 11.2 6.7 6.9A2 2 0 0 1 8.6 5.5h6.8a2 2 0 0 1 1.9 1.4l1.6 4.3c.9.3 1.7 1.1 1.7 2.1v3.2a.8.8 0 0 1-.8.8h-1.4a2.2 2.2 0 0 1-4.3 0H9.9a2.2 2.2 0 0 1-4.3 0H4.2a.8.8 0 0 1-.8-.8v-3.2c0-1 .8-1.8 1.7-2.1Zm2-.2h9.8l-1.2-3.3a.7.7 0 0 0-.7-.5H9a.7.7 0 0 0-.7.5Z"/></svg>
+            </span>
+            Auto<span class="an2-green">Nova</span>
+          </a>
+          <p class="an2-footer-desc">La plataforma de alquiler de autos premium en México. Entrega en 24 h, seguro incluido y monitoreo IoT en tiempo real.</p>
+          <div class="an2-social">
+            <a href="#" aria-label="Instagram">IG</a>
+            <a href="#" aria-label="Facebook">f</a>
+            <a href="#" aria-label="X">X</a>
+            <a href="#" aria-label="YouTube">▶</a>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <h6>Servicios</h6>
+          <ul class="list-unstyled">
+            <li><a class="f-link" href="{{ url_for('catalogo') }}">Compra de vehículos</a></li>
+            <li><a class="f-link" href="{{ url_for('catalogo') }}">Alquiler mensual</a></li>
+            <li><a class="f-link" href="{{ url_for('catalogo') }}">Renta por día</a></li>
+            <li><a class="f-link" href="{{ url_for('catalogo') }}">Test drive</a></li>
+          </ul>
+        </div>
+        <div class="col-6 col-lg-3">
+          <h6>Enlaces</h6>
+          <ul class="list-unstyled">
+            <li><a class="f-link" href="{{ url_for('inicio') }}">Sobre nosotros</a></li>
+            <li><a class="f-link" href="{{ url_for('catalogo') }}">Flota completa</a></li>
+            <li><a class="f-link" href="{{ url_for('inicio') }}">Precios</a></li>
+            <li><a class="f-link" href="#">Términos y condiciones</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-3">
+          <h6>Soporte</h6>
+          <ul class="list-unstyled">
+            <li><a class="f-link" href="#">Centro de ayuda</a></li>
+            <li><a class="f-link" href="mailto:hola@autonova.mx">Contacto</a></li>
+            <li><a class="f-link" href="#">Preguntas frecuentes</a></li>
+            <li><a class="f-link" href="#">WhatsApp</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="an2-footer-bottom">
+      <div class="container d-flex justify-content-between flex-wrap gap-2">
+        <span>© 2026 AutoNova. Todos los derechos reservados.</span>
+        <span>
+          <a href="#">Términos</a> · <a href="#">Privacidad</a> · <a href="#">Cookies</a>
+        </span>
+      </div>
+    </div>
+  </footer>
+  {% endblock %}
+
+  <button id="backToTop" class="btn btn-an position-fixed bottom-0 end-0 m-3 rounded-circle px-3 py-2" style="z-index:1000" title="Volver arriba">↑</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

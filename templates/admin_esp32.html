@@ -1,0 +1,280 @@
+{% extends 'admin_base.html' %}
+{% block title %}Módulos ESP32{% endblock %}
+{% block page %}admin-esp32{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <p class="an-section-eyebrow mb-0">Panel de administración</p>
+    <h1 class="h3 fw-bold mb-0">Módulos ESP32 · Gestión de hardware</h1>
+  </div>
+  <div class="d-flex gap-2 align-items-center flex-wrap">
+    <span class="an-badge an-badge-ok">Endpoint: {{ esp_endpoint or 'http://192.168.1.105:5000/api' }}</span>
+    <button class="btn btn-an btn-sm" data-bs-toggle="modal" data-bs-target="#modalEspNuevo">+ Registrar módulo</button>
+  </div>
+</div>
+
+<!-- KPIs de módulos -->
+<div class="row g-3 mb-4">
+  {% set kpis = [
+    {'label':'Módulos registrados','valor': kpi_total|default(0), 'trend':'en la flota', 'cls':'up'},
+    {'label':'Conectados','valor': kpi_conectados|default(0), 'trend':'enviando señal', 'cls':'up'},
+    {'label':'Esperando','valor': kpi_esperando|default(0), 'trend':'sin heartbeats aún', 'cls':'up'},
+    {'label':'Apagados / offline','valor': kpi_apagados|default(0), 'trend':'sin conexión', 'cls':'down'}
+  ] %}
+  {% for k in kpis %}
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card">
+      <div class="kpi-label">{{ k.label }}</div>
+      <div class="kpi-value">{{ k.valor }}</div>
+      <div class="kpi-trend {{ k.cls }}">{{ k.trend }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Tarjetas de módulos (actualización en vivo vía esp32.js) -->
+<div class="row g-3 mb-4">
+  {% for m in modulos %}
+  <div class="col-md-6 col-xxl-4">
+    <div class="esp-card p-3 h-100 d-flex flex-column"
+         data-esp-status="{{ m.estado }}" data-codigo="{{ m.codigo }}"
+         data-id="{{ m.id }}" data-nombre="{{ m.nombre }}"
+         data-firmware="{{ m.firmware or '' }}" data-endpoint="{{ m.endpoint or '' }}"
+         data-vehiculo-id="{{ m.vehiculo_id or '' }}">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="fw-bold">{{ m.nombre }}</div>
+          <div class="esp-id mt-1">ID: {{ m.codigo }} · Arduino: módulo {{ m.id }}</div>
+        </div>
+        <span class="status-pill {{ m.clase }}"><span class="dot"></span><span data-status-label>{{ m.estado|capitalize }}</span></span>
+      </div>
+
+      <dl class="small mb-0 mt-3">
+        <div class="d-flex justify-content-between border-bottom py-1">
+          <dt class="text-muted fw-normal">Vehículo</dt>
+          <dd class="mb-0">{% if m.vehiculo %}{{ m.vehiculo.marca }} {{ m.vehiculo.modelo }}{% else %}—{% endif %}</dd>
+        </div>
+        <div class="d-flex justify-content-between border-bottom py-1">
+          <dt class="text-muted fw-normal">IP local</dt>
+          <dd class="mb-0 font-monospace">{{ m.ip or '—' }}</dd>
+        </div>
+        <div class="d-flex justify-content-between border-bottom py-1">
+          <dt class="text-muted fw-normal">Firmware</dt>
+          <dd class="mb-0 font-monospace">{{ m.firmware or '—' }}</dd>
+        </div>
+        <div class="d-flex justify-content-between py-1">
+          <dt class="text-muted fw-normal">Último heartbeat</dt>
+          <dd class="mb-0 font-monospace">{{ m.hb_txt }}</dd>
+        </div>
+      </dl>
+
+      <!-- Semáforo del módulo (verde/azul/amarillo/rojo) + cronómetro de alquiler.
+           Se LEE desde la base (tabla semaforo_focos), no del Arduino, y se
+           puede CAMBIAR desde la página con el control de abajo. -->
+      <div class="sem-row mt-2 {{ '' if m.semaforo else 'd-none' }}" data-semaforo>
+        <span class="sem-dot" data-semaforo-dot
+              style="background:{{ m.semaforo and {'verde':'#10B981','azul':'#3B82F6','amarillo':'#F59E0B','rojo':'#EF4444'}.get(m.semaforo.luz,'#64748B') or '#CBD5E1' }}"></span>
+        <span class="sem-label" data-semaforo-label>{{ m.semaforo.detalle if m.semaforo else '—' }}</span>
+      </div>
+
+      <!-- Cambiar el foco desde la página (guarda en semaforo_focos) -->
+      <form method="post" action="{{ url_for('admin_esp32_semaforo', mid=m.id) }}"
+            class="mt-2 p-2 border rounded bg-light" data-semaforo-control>
+        <input type="hidden" name="destino" value="{{ url_for('admin_esp32') }}">
+        <input type="hidden" name="modo" value="manual">
+        <div class="d-flex align-items-center gap-1 flex-wrap">
+          <span class="small text-muted me-1">Foco:</span>
+          <button type="submit" name="foco" value="verde"
+                  class="btn btn-sm" title="Foco verde (sin reserva)"
+                  style="width:2.2rem;height:2.2rem;padding:0;background:#10B981;color:#fff;border:none">V</button>
+          <button type="submit" name="foco" value="azul"
+                  class="btn btn-sm" title="Foco azul (reserva por confirmar)"
+                  style="width:2.2rem;height:2.2rem;padding:0;background:#3B82F6;color:#fff;border:none">A</button>
+          <button type="submit" name="foco" value="amarillo"
+                  class="btn btn-sm" title="Foco amarillo (alquiler en curso)"
+                  style="width:2.2rem;height:2.2rem;padding:0;background:#F59E0B;color:#fff;border:none">Am</button>
+          <button type="submit" name="foco" value="rojo"
+                  class="btn btn-sm" title="Foco rojo (alquiler vencido)"
+                  style="width:2.2rem;height:2.2rem;padding:0;background:#EF4444;color:#fff;border:none">R</button>
+          <div class="d-flex align-items-center gap-1" title="Minutos del cronómetro (solo amarillo)">
+            <input type="number" name="minutos" min="1" max="1440" value="30"
+                   class="form-control form-control-sm" style="width:4.5rem">
+            <span class="small text-muted">min</span>
+          </div>
+        </div>
+      </form>
+      <form method="post" action="{{ url_for('admin_esp32_semaforo', mid=m.id) }}" class="mt-1">
+        <input type="hidden" name="destino" value="{{ url_for('admin_esp32') }}">
+        <input type="hidden" name="modo" value="auto">
+        <button type="submit" class="btn btn-sm btn-light"
+                title="Vuelve al cálculo automático según las reservas">⟳ Automático</button>
+      </form>
+
+      <!-- Asignar / cambiar el vehículo del módulo (semáforo se recalcula solo) -->
+      <form method="post" action="{{ url_for('admin_esp32_asignar', mid=m.id) }}" class="mt-1">
+        <input type="hidden" name="destino" value="{{ url_for('admin_esp32') }}">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <label class="small text-muted mb-0" for="asig-{{ m.id }}">Vehículo:</label>
+          <select class="form-select form-select-sm flex-grow-1" name="vehiculo_id"
+                  id="asig-{{ m.id }}" onchange="this.form.submit()"
+                  title="Asigna el vehículo que monitorea este módulo (se pasa a automático)">
+            <option value="">— Sin asignar —</option>
+            {% for v in vehiculos %}
+            <option value="{{ v.id }}"
+                    {% if m.vehiculo_id == v.id %}selected{% endif %}
+                    {% if v.modulo and v.modulo.id != m.id %}disabled{% endif %}>
+              {{ v.marca }} {{ v.modelo }} ({{ v.placa }})
+              {%- if v.modulo and v.modulo.id != m.id %} · ya en otro módulo{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </form>
+
+      {% if m.estado in ('conectado', 'esperando') %}
+      <span class="t-elapsed mt-2 d-block" data-elapsed data-live-since="{{ m.hb_ms or now_ms() }}">—</span>
+      {% endif %}
+
+      <div class="d-flex flex-wrap gap-2 mt-auto pt-3">
+        <a class="btn btn-sm btn-light" href="{{ url_for('admin_esp32_telemetria', mid=m.id) }}">Telemetría</a>
+        <button type="button" class="btn btn-sm btn-light" data-edit-modulo>Editar</button>
+
+        <div class="dropdown">
+          <button class="btn btn-sm btn-an dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Enviar comando</button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            {% for c in comandos_validos %}
+            <li>
+              <form method="post" action="{{ url_for('admin_esp32_comando', mid=m.id) }}"
+                    onsubmit="return confirm('¿Enviar \"{{ c }}\" a {{ m.nombre }}?');">
+                <input type="hidden" name="comando" value="{{ c }}">
+                <input type="hidden" name="destino" value="{{ url_for('admin_esp32') }}">
+                <button type="submit" class="dropdown-item">{{ c|capitalize }}</button>
+              </form>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <form method="post" action="{{ url_for('admin_esp32_estado', mid=m.id) }}" title="Forzar estado">
+          <input type="hidden" name="destino" value="{{ url_for('admin_esp32') }}">
+          <select name="estado" class="form-select form-select-sm" onchange="this.form.submit()">
+            {% for e in ['esperando','conectado','apagado'] %}
+            <option value="{{ e }}" {% if m.estado == e %}selected{% endif %}>{{ e|capitalize }}</option>
+            {% endfor %}
+          </select>
+        </form>
+
+        <form method="post" action="{{ url_for('admin_esp32_eliminar', mid=m.id) }}"
+              onsubmit="return confirm('¿ELIMINAR {{ m.nombre }}? Se borrará también su telemetría. Esta acción no se puede deshacer.');">
+          <input type="hidden" name="destino" value="{{ url_for('admin_esp32') }}">
+          <button class="btn btn-sm btn-outline-danger">Eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12"><p class="text-muted">No hay módulos registrados. Usa «+ Registrar módulo» para dar de alta tu Arduino.</p></div>
+  {% endfor %}
+</div>
+<div class="row g-4">
+  <!-- Telemetría reciente (todas las lecturas de la BD) -->
+  <div class="col-xl-7">
+    <div class="an-table-card p-0 h-100">
+      <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+        <h3 class="h6 fw-bold mb-0">Telemetría reciente</h3>
+        <span class="small text-muted">Últimas 20 lecturas</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th scope="col">Módulo</th>
+              <th scope="col">Fecha</th>
+              <th scope="col">Vel.</th>
+              <th scope="col">Batería</th>
+              <th scope="col">Motor</th>
+              <th scope="col">RSSI</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t, mod in telemetrias %}
+            <tr>
+              <td>
+                <div class="fw-bold">{{ mod.nombre }}</div>
+                <div class="esp-id">{{ mod.codigo }}</div>
+              </td>
+              <td class="small font-monospace">{{ t.leido_en.strftime('%d/%m %H:%M:%S') if t.leido_en else '—' }}</td>
+              <td>{{ t.velocidad if t.velocidad is not none else '—' }} km/h</td>
+              <td>{{ t.bateria if t.bateria is not none else '—' }}%</td>
+              <td><span class="an-badge an-badge-{{ 'ok' if t.motor == 'on' else 'off' }}">{{ t.motor or '—' }}</span></td>
+              <td class="font-monospace">{{ t.rssi if t.rssi is not none else '—' }} dBm</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center text-muted py-4">Aún no hay lecturas. El Arduino envía datos con POST /api/esp/&lt;id&gt;/heartbeat.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cola de comandos remotos -->
+  <div class="col-xl-5">
+    <div class="an-table-card p-0 h-100">
+      <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+        <h3 class="h6 fw-bold mb-0">Comandos remotos</h3>
+        <span class="small text-muted">Cola admin → Arduino</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th scope="col">Módulo</th>
+              <th scope="col">Comando</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Creado</th>
+              <th scope="col">Entregado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c, mod in comandos %}
+            <tr>
+              <td><span class="fw-bold">{{ mod.nombre }}</span></td>
+              <td><span class="an-plate">{{ c.comando }}</span></td>
+              <td><span class="an-badge an-badge-{{ 'ok' if c.estado == 'entregado' else 'warn' }}">{{ c.estado }}</span></td>
+              <td class="small font-monospace">{{ c.creado_en.strftime('%d/%m %H:%M') if c.creado_en else '—' }}</td>
+              <td class="small font-monospace">{{ c.entregado_en.strftime('%d/%m %H:%M') if c.entregado_en else '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-4">Sin comandos enviados. Usa «Enviar comando» en una tarjeta.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% with destino = url_for('admin_esp32') %}
+  {% include 'admin_modal_esp32.html' %}
+{% endwith %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  /* Rellena y envía el modal de edición con los datos de la tarjeta */
+  document.querySelectorAll('[data-edit-modulo]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var card = btn.closest('[data-esp-status]');
+      if (!card) return;
+      var form = document.getElementById('formEspEditar');
+      form.action = '{{ url_for("admin_esp32") }}/' + card.dataset.id + '/editar';
+      document.getElementById('editCodigo').value = card.dataset.codigo || '';
+      document.getElementById('editNombre').value = card.dataset.nombre || '';
+      document.getElementById('editFirmware').value = card.dataset.firmware || '';
+      document.getElementById('editEndpoint').value = card.dataset.endpoint || '';
+      document.getElementById('editVehiculo').value = card.dataset.vehiculoId || '';
+    });
+  });
+</script>
+{% endblock %}

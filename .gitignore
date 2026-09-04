@@ -1,0 +1,43 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.pyc
+.venv/
+venv/
+env/
+*.egg-info/
+
+# ===== Entornos e IDEs =====
+.vs/
+.idea/
+.claude/
+.clinerules
+.cline/
+
+# ===== Caché / logs =====
+*.log
+*.tmp
+.cache/
+.pytest_cache/
+
+# ===== Sistemas =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Archivos comprimidos / basura =====
+*.rar
+*.zip
+*.7z
+*.bak
+*~
+
+# ===== Base de datos local =====
+*.sqlite
+*.db
+
+.env
+.vscode/
+cline_mcp_settings.json
+__pycache__/
+venv/

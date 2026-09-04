@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}{{ v.marca ~ ' ' ~ v.modelo if v else 'Detalle' }} · AutoNova{% endblock %}
+{% block page %}alquilar{% endblock %}
+
+{% block content %}
+{% set v = v or {'id':1,'marca':'Mercedes-Benz','modelo':'Clase E 400','placa':'MEC-72-11','categoria':'Elegante','anio':2024,
+                 'motor':'2.0 L Turbo','transmision':'Automática','combustible':'Gasolina','tarifa_dia':'128','imagen':'vehiculo1.jpg','estado':'disponible',
+                 'descripcion':'Fusiona confort ejecutivo y tecnología de punta. Equipado con asientos de cuero, asistencia de conducción y conectividad total.'} %}
+
+<section class="py-5">
+  <div class="container">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('inicio') }}">Inicio</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('catalogo') }}">Flota</a></li>
+        <li class="breadcrumb-item active">{{ v.marca }} {{ v.modelo }}</li>
+      </ol>
+    </nav>
+
+    <div class="row g-5">
+      <div class="col-lg-7">
+        <img src="{{ url_for('static', filename='media/' ~ (v.imagen or 'vehiculo1.jpg')) }}" class="img-fluid rounded-4 w-100 an-media" alt="{{ v.marca }} {{ v.modelo }}">
+        <div class="row g-2 mt-2">
+          {% for t in ['galeria1.jpg','galeria2.jpg','galeria3.jpg'] %}
+          <div class="col-4"><img src="{{ url_for('static', filename='media/' ~ t) }}" class="img-fluid rounded-3" alt="foto" style="height:110px;object-fit:cover"></div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <span class="an-brand-chip">{{ v.marca }}</span>
+        <h1 class="fw-bold h2 mb-1">{{ v.modelo }}</h1>
+        <p class="text-muted" style="font-family:'Courier New',monospace">{{ v.placa }}</p>
+
+        <span class="an-badge an-badge-{{ 'ok' if v.estado == 'disponible' else 'warn' }} mb-3">{{ v.estado|capitalize }}</span>
+
+        <div class="an-card p-4 my-4">
+          <p class="an-price h2 mb-0">${{ v.tarifa_dia }}<span class="text-muted small fw-normal"> / día</span></p>
+          <p class="text-muted small mt-1">★ 4.9 · Valoración de clientes</p>
+        </div>
+
+        <ul class="list-unstyled row row-cols-2 g-2">
+          <li class="col"><span class="text-muted">Modelo:</span> <b>{{ v.marca }} {{ v.modelo }}</b></li>
+          <li class="col"><span class="text-muted">Placa:</span> <b>{{ v.placa }}</b></li>
+          <li class="col"><span class="text-muted">Año:</span> <b>{{ v.anio or 2024 }}</b></li>
+          <li class="col"><span class="text-muted">Transmisión:</span> <b>{{ v.transmision or 'Automática' }}</b></li>
+          <li class="col"><span class="text-muted">Combustible:</span> <b>{{ v.combustible or 'Gasolina' }}</b></li>
+          <li class="col"><span class="text-muted">Categoría:</span> <b>{{ v.categoria or 'Elegante' }}</b></li>
+        </ul>
+
+        <p class="text-muted">{{ v.descripcion or '' }}</p>
+
+        {% if not session_user %}
+        <div class="alert alert-warning small mb-3">
+          🔒 Para completar el alquiler necesitas una cuenta:
+          <a href="{{ url_for('login') }}">inicia sesión</a> o
+          <a href="{{ url_for('registro') }}">regístrate</a> — te esperará tu reserva.
+        </div>
+        {% endif %}
+        <a href="{{ url_for('checkout', id=v.id) }}" class="btn btn-an btn-lg w-100">Reservar / Alquilar</a>
+        <p class="text-muted small text-center mt-2">Entrega en 24 h · Seguro incluido</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

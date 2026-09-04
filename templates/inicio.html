@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Inicio · AutoNova{% endblock %}
+{% block page %}inicio{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="an2-hero">
+  <div class="container" style="padding-top:76px;padding-bottom:88px">
+    <div class="row">
+      <div class="col-lg-7">
+        <span class="an2-eyebrow">Flota premium disponible ahora</span>
+        <h1 class="mt-3 mb-3">Conduce<br><span class="green">sin límites.</span></h1>
+        <p class="an2-hero-sub mb-4">Alquila el auto de tus sueños. Entrega en 24 h, seguro incluido, sin cargos ocultos.</p>
+        <div class="an2-feats">
+          <span class="an2-feat">★ 4.9/5 en Google</span>
+          <span class="an2-feat">🛡️ Seguro incluido</span>
+          <span class="an2-feat">🏠 Entrega a domicilio</span>
+          <span class="an2-feat">👥 +{{ total_usuarios or 12400 }} conductores</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BUSCADOR -->
+<div class="an2-search">
+  <div class="container">
+    <form class="an2-search-card row g-0 align-items-stretch" method="get" action="{{ url_for('catalogo') }}">
+      <div class="col-lg-4 an2-search-field">
+        <label for="qLugar">Lugar de recogida</label>
+        <input id="qLugar" name="lugar" type="text" placeholder="Ciudad o aeropuerto">
+      </div>
+      <div class="col-lg-3 an2-search-field">
+        <label for="qInicio">Fecha de inicio</label>
+        <input id="qInicio" name="fecha_inicio" type="date">
+      </div>
+      <div class="col-lg-3 an2-search-field">
+        <label for="qFin">Fecha de fin</label>
+        <input id="qFin" name="fecha_fin" type="date">
+      </div>
+      <div class="col-lg-2 d-grid p-1">
+        <button class="an2-btn an2-btn-green justify-content-center" type="submit" style="height:100%">Buscar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- STATS -->
+<section class="an2-stats">
+  <div class="container">
+    <div class="row text-center g-4">
+      <div class="col-6 col-lg-3">
+        <div class="an2-stat-num">{{ total_vehiculos }}+</div>
+        <div class="an2-stat-cap">Vehículos en flota</div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="an2-stat-num">{{ '{:,}'.format(total_usuarios) if total_usuarios else '12,400' }}</div>
+        <div class="an2-stat-cap">Clientes felices</div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="an2-stat-num">4.9<span class="green">★</span></div>
+        <div class="an2-stat-cap">Calificación promedio</div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="an2-stat-num">24h</div>
+        <div class="an2-stat-cap">Entrega garantizada</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DESTACADOS -->
+<section class="an2-section">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-2 flex-wrap gap-2">
+      <div>
+        <span class="an2-eyebrow">Selección curada</span>
+        <h2 class="an2-title mt-2 mb-2">Vehículos Destacados</h2>
+        <p class="an2-sec-sub mb-0">Los favoritos de nuestros clientes, con calificaciones verificadas y disponibilidad inmediata.</p>
+      </div>
+      <a href="{{ url_for('catalogo') }}" class="an2-btn-dark">Ver todo en Flota →</a>
+    </div>
+
+    <div class="an2-filters my-4" id="homeFilters">
+      <button class="an2-filter active" type="button" data-filter="all">Todos</button>
+      <button class="an2-filter" type="button" data-filter="deportivo">Deportivos</button>
+      <button class="an2-filter" type="button" data-filter="suv">SUV</button>
+      <button class="an2-filter" type="button" data-filter="sedan">Sedanes</button>
+      <button class="an2-filter" type="button" data-filter="electrico">Eléctricos</button>
+    </div>
+
+    <div class="row g-4">
+      {% for v in destacados %}
+      <div class="col-md-6 col-lg-4">
+        <div class="an2-card" data-category="{{ v.categoria }}">
+          <div class="an2-card-media">
+            <img src="{{ url_for('static', filename='media/' ~ v.imagen) }}" alt="{{ v.marca }} {{ v.modelo }}" loading="lazy">
+            <span class="an2-flag {{ 'ok' if v.estado == 'disponible' else ('warn' if v.estado == 'reservada' else 'off') }}">{{ v.estado|capitalize }}</span>
+            <button class="an2-heart" type="button" title="Guardar en favoritos">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20.5S4.5 16 2.9 11.7A4.9 4.9 0 0 1 12 6.7a4.9 4.9 0 0 1 9.1 5C19.5 16 12 20.5 12 20.5Z"/></svg>
+            </button>
+            <div class="an2-price"><b>${{ '%g'|format(v.tarifa_dia|float) }}</b> <span>/día</span></div>
+          </div>
+          <div class="an2-card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="an2-card-brand">{{ v.marca }}</div>
+                <div class="an2-card-title">{{ v.modelo }}</div>
+              </div>
+              <span class="an2-rating">★ 4.9</span>
+            </div>
+            <div class="an2-specs my-3">
+              <span>⚙️ {{ (v.transmision or 'automática')|capitalize }}</span>
+              <span>⛽ {{ v.combustible or 'Gasolina' }}</span>
+              <span>🚗 {{ v.categoria|capitalize }}</span>
+            </div>
+            <a href="{{ url_for('vehiculo', id=v.id) }}" class="an2-btn an2-btn-green">Alquilar ahora →</a>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-12 text-center text-muted py-5">Pronto agregaremos vehículos destacados.</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="an2-cta">
+  <div class="container">
+    <p class="mb-3">¿No encuentras lo que buscas? Tenemos más de {{ total_vehiculos }} vehículos disponibles.</p>
+    <a href="{{ url_for('catalogo') }}" class="an2-btn-dark">Explorar flota completa →</a>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Filtros de categorías de la sección destacados
+  document.querySelectorAll('#homeFilters .an2-filter').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      document.querySelectorAll('#homeFilters .an2-filter').forEach(function (c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+      var f = chip.dataset.filter;
+      document.querySelectorAll('.an2-card[data-category]').forEach(function (card) {
+        card.closest('.col-md-6').classList.toggle('d-none', f !== 'all' && card.dataset.category !== f);
+      });
+    });
+  });
+</script>
+{% endblock %}

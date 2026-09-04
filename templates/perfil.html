@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% block title %}Mi Perfil · AutoNova{% endblock %}
+{% block page %}perfil{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/perfil.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container an4-wrap">
+
+  <div class="an4-layout">
+
+    <!-- ============ Sidebar: tarjeta del usuario ============ -->
+    <aside class="an4-side">
+      <div class="an4-card an4-usercard">
+        <div class="an4-avatar"><span>{{ (user.nombre or 'U')|trim|first|upper }}</span></div>
+        <h3 class="an4-name">{{ user.nombre }} {{ user.apellidos or '' }}</h3>
+        <p class="an4-mail">{{ user.email }}</p>
+        <span class="an4-chip-verify">✓ Cuenta verificada</span>
+
+        <div class="an4-stats">
+          <div class="an4-stat"><b>{{ stats.rentas }}</b><span>Rentas</span></div>
+          <div class="an4-stat"><b>{{ '%.1f'|format(stats.rating) }}<i>★</i></b><span>Rating</span></div>
+          <div class="an4-stat"><b>${{ '{:,.0f}'.format(stats.gastado) }}</b><span>Gastado</span></div>
+          <div class="an4-stat"><b>{{ stats.miembro }}</b><span>Miembro</span></div>
+        </div>
+      </div>
+
+      <nav class="an4-card an4-menu">
+        <a class="an4-menu-item active" href="#mis-reservas">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>
+          Mis Reservas
+          {% if stats.activas %}<span class="an4-count">{{ stats.activas }}</span>{% endif %}
+        </a>
+        <a class="an4-menu-item" href="#mi-info">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.4 7-5.4s6.2 1.8 7 5.4"/></svg>
+          Mi Perfil
+        </a>
+      </nav>
+
+      <a class="an4-card an4-logout" href="{{ url_for('logout') }}">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 8l-4 4 4 4M6 12h10"/></svg>
+        Cerrar sesión
+      </a>
+    </aside>
+
+    <!-- ============ Contenido principal ============ -->
+    <div class="an4-main">
+
+      <header class="an4-head">
+        <h1>Mis Reservas</h1>
+        <p>Gestiona tu renta activa e historial de alquileres</p>
+      </header>
+
+      {% if activa %}
+      <!-- Reserva activa -->
+      <section class="an4-card an4-activa" id="mis-reservas">
+        <header class="an4-activa-top">
+          <span class="an4-live"><i></i> Reserva Activa</span>
+          <span class="an4-activa-meta">
+            <b class="an4-codigo">{{ activa.codigo }}</b>
+            <em class="an4-chip-onair">● Activo</em>
+          </span>
+        </header>
+
+        <div class="an4-activa-body">
+          <figure class="an4-activa-media">
+            <img src="{{ url_for('static', filename='media/' ~ activa.imagen) }}" alt="{{ activa.modelo }}">
+            {% if activa.placa %}<figcaption>{{ activa.placa }}</figcaption>{% endif %}
+          </figure>
+
+          <div class="an4-activa-info">
+            <p class="an4-eyebrow">{{ activa.titulo }}{% if activa.cat %} · {{ activa.cat }}{% endif %}</p>
+            <h2>{{ activa.modelo }}</h2>
+
+            <div class="an4-fechas">
+              <div class="an4-fbox"><span>Recogida</span><b>{{ activa.recogida }}</b></div>
+              <div class="an4-fbox"><span>Devolución</span><b>{{ activa.devolucion }}</b></div>
+              <div class="an4-fbox"><span>Ubicación</span><b>{{ activa.lugar }}</b></div>
+            </div>
+
+            <div class="an4-progress">
+              <div class="an4-progress-row">
+                <span>Progreso del alquiler</span>
+                <b>{{ activa.dias }} de {{ activa.dias_tot }} días transcurridos</b>
+              </div>
+              <div class="an4-bar"><i style="width: {{ activa.pct }}%;"></i></div>
+              <div class="an4-progress-dates"><span>{{ activa.recogida }}</span><span>{{ activa.devolucion }}</span></div>
+            </div>
+
+            <div class="an4-actions">
+              <a class="an4-btn an4-btn-green" href="mailto:hola@autonova.mx">📞 Contactar soporte</a>
+              <a class="an4-btn an4-btn-ghost" href="{{ url_for('vehiculo', id=activa.r.vehiculo_id) }}">Ver contrato</a>
+              {% if activa.puede_cancelar %}
+              <form method="post" action="{{ url_for('perfil_cancelar', rid=activa.r.id) }}"
+                    onsubmit="return confirm('¿Seguro que deseas cancelar la reserva {{ activa.codigo }}?');">
+                <button type="submit" class="an4-btn an4-btn-red">✕ Cancelar</button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </section>
+      {% else %}
+      <section class="an4-card an4-empty" id="mis-reservas">
+        <div>
+          <h3>Sin rentas activas</h3>
+          <p>Cuando reserves un vehículo aparecerá aquí con su progreso en vivo.</p>
+        </div>
+        <a class="an4-btn an4-btn-green" href="{{ url_for('catalogo') }}">Explorar catálogo</a>
+      </section>
+      {% endif %}
+
+      <!-- Historial -->
+      <section class="an4-card an4-hist">
+        <header class="an4-hist-head">
+          <div>
+            <h3>Historial de Rentas</h3>
+            <p>{{ stats.completadas }} {% if stats.completadas == 1 %}alquiler completado{% else %}alquileres completados{% endif %}</p>
+          </div>
+          <a class="an4-btn an4-btn-ghost sm" href="{{ url_for('perfil_exportar') }}">⤓ Exportar</a>
+        </header>
+
+        <div class="an4-table-wrap">
+          <table class="an4-table">
+            <thead>
+              <tr>
+                <th>Vehículo</th><th>Reserva #</th><th>Periodo</th><th>Duración</th><th>Total</th><th>Estado</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for h in historial %}
+              <tr>
+                <td>
+                  <div class="an4-veh">
+                    <img src="{{ url_for('static', filename='media/' ~ h.imagen) }}" alt="">
+                    <div><b>{{ h.marca }}</b><span>{{ h.modelo }}</span></div>
+                  </div>
+                </td>
+                <td><code class="an4-mono">{{ h.codigo }}</code></td>
+                <td class="an4-muted">{{ h.periodo }}</td>
+                <td>{{ h.dias }} días</td>
+                <td><b>${{ '{:,.0f}'.format(h.total) }}</b></td>
+                <td><span class="an4-estado an4-estado-{{ h.estado_clase }}">{{ h.estado_label }}</span></td>
+                <td><a class="an4-ver" href="{{ url_for('vehiculo', id=h.r.vehiculo_id) }}">Ver detalle</a></td>
+              </tr>
+              {% else %}
+              <tr><td colspan="7" class="an4-none">Aún no tienes alquileres en tu historial.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Mi información -->
+      <section class="an4-card an4-info" id="mi-info">
+        <header class="an4-hist-head">
+          <div>
+            <h3>Mi información</h3>
+            <p>Datos de tu cuenta AutoNova</p>
+          </div>
+        </header>
+        <dl class="an4-dl">
+          <div><dt>Nombre</dt><dd>{{ user.nombre }} {{ user.apellidos or '' }}</dd></div>
+          <div><dt>Email</dt><dd>{{ user.email }}</dd></div>
+          <div><dt>Teléfono</dt><dd>{{ user.telefono or '—' }}</dd></div>
+          <div><dt>Licencia</dt><dd>{{ user.licencia or '—' }}</dd></div>
+          <div><dt>Rol</dt><dd>{{ (user.rol or 'cliente')|capitalize }}</dd></div>
+          <div><dt>Miembro desde</dt><dd>{{ stats.miembro }}</dd></div>
+          <div><dt>Último acceso</dt><dd>{{ user.ultimo_acceso.strftime('%d/%m/%Y %H:%M') if user.ultimo_acceso else '—' }}</dd></div>
+        </dl>
+      </section>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+

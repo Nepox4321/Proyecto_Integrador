@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+{% block title %}Catálogo de Vehículos · AutoNova{% endblock %}
+{% block page %}flota{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/catalogo.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- ====== Hero del catálogo (Figma 24:5231) ====== -->
+<section class="an3-hero">
+  <div class="container">
+    <nav class="an3-crumb" aria-label="breadcrumb">
+      <a href="{{ url_for('inicio') }}">Inicio</a><span>›</span><b>Catálogo</b>
+    </nav>
+    <div class="row align-items-end g-3">
+      <div class="col-lg-7">
+        <h1 class="an3-title">Catálogo de Vehículos</h1>
+        <p class="an3-sub">Explora toda nuestra flota premium · <b>{{ flota|length }}</b> vehículos disponibles</p>
+      </div>
+      <div class="col-lg-5">
+        <div class="an3-search">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="an3Search" type="search" placeholder="Buscar modelos, marca…" autocomplete="off">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== Filtros + resultados ====== -->
+<section class="an3-body">
+  <div class="container">
+    <div class="row g-4">
+
+      <!-- Sidebar de filtros -->
+      <aside class="col-lg-3">
+        <div class="an3-filters">
+          <div class="an3-fh">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M3 5h18l-7 8.2V19l-4 2.5v-8.3L3 5Z"/></svg>
+            Filtros
+          </div>
+
+          <div class="an3-fgroup">
+            <label class="an3-flabel">Precio por día</label>
+            <input id="an3Precio" type="range" class="an3-range" min="0" max="1000" step="10" value="1000">
+            <div class="an3-pricelabels">
+              <span id="an3Pmin">$0</span>
+              <span id="an3Pmax" class="green">Hasta $1000/día</span>
+            </div>
+          </div>
+
+          <div class="an3-fgroup">
+            <label class="an3-flabel">Transmisión</label>
+            <label class="an3-check"><input type="checkbox" class="f-trans" value="automatica"> Automático <span class="an3-count" data-count="trans-automatica"></span></label>
+            <label class="an3-check"><input type="checkbox" class="f-trans" value="manual"> Manual <span class="an3-count" data-count="trans-manual"></span></label>
+            <label class="an3-check"><input type="checkbox" class="f-trans" value="hibrido"> Híbrido <span class="an3-count" data-count="trans-hibrido"></span></label>
+            <label class="an3-check"><input type="checkbox" class="f-trans" value="electrico"> Eléctrico <span class="an3-count" data-count="trans-electrico"></span></label>
+          </div>
+
+          <div class="an3-fgroup">
+            <label class="an3-flabel">Número de pasajeros</label>
+            <div class="an3-paxgrid">
+              <button type="button" class="an3-pill f-pax" data-pax="2"><b>2+</b><small>Asientos</small></button>
+              <button type="button" class="an3-pill f-pax" data-pax="4"><b>4+</b><small>Asientos</small></button>
+              <button type="button" class="an3-pill f-pax" data-pax="5"><b>5+</b><small>Asientos</small></button>
+              <button type="button" class="an3-pill f-pax" data-pax="7"><b>7+</b><small>Asientos</small></button>
+            </div>
+          </div>
+
+          <div class="an3-fgroup">
+            <label class="an3-flabel">Categoría</label>
+            <label class="an3-check"><input type="checkbox" class="f-cat" value="suv"> SUV <span class="an3-count" data-count="cat-suv"></span></label>
+            <label class="an3-check"><input type="checkbox" class="f-cat" value="sedan"> Sedán <span class="an3-count" data-count="cat-sedan"></span></label>
+            <label class="an3-check"><input type="checkbox" class="f-cat" value="deportivo"> Deportivo <span class="an3-count" data-count="cat-deportivo"></span></label>
+            <label class="an3-check"><input type="checkbox" class="f-cat" value="elegante"> Elegante <span class="an3-count" data-count="cat-elegante"></span></label>
+            <label class="an3-check"><input type="checkbox" class="f-cat" value="electrico"> Eléctrico <span class="an3-count" data-count="cat-electrico"></span></label>
+            <label class="an3-check"><input type="checkbox" class="f-cat" value="convertible"> Convertible <span class="an3-count" data-count="cat-convertible"></span></label>
+          </div>
+
+          <button id="an3Aplicar" class="an3-btn-apply" type="button">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18l-7 8.2V19l-4 2.5v-8.3L3 5Z"/></svg>
+            Aplicar filtros
+          </button>
+        </div>
+      </aside>
+      <div class="col-lg-9">
+        <div class="an3-toolbar">
+          <div><b id="an3Total">{{ flota|length }}</b> vehículos encontrados</div>
+          <div class="an3-tools">
+            <label for="an3Ordenar">Ordenar:</label>
+            <select id="an3Ordenar" class="form-select form-select-sm">
+              <option value="recom">Recomendados</option>
+              <option value="precio-asc">Precio: menor a mayor</option>
+              <option value="precio-desc">Precio: mayor a menor</option>
+              <option value="rating">Mejor calificados</option>
+            </select>
+            <div class="an3-views">
+              <button id="an3ViewGrid" class="active" type="button" title="Cuadrícula" aria-label="Ver en cuadrícula">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
+              </button>
+              <button id="an3ViewList" type="button" title="Lista" aria-label="Ver en lista">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M4 5h2v2H4zM8 5h12v2H8zM4 11h2v2H4zM8 11h12v2H8zM4 17h2v2H4zM8 17h12v2H8z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="an3Grid" class="row g-4">
+          {% for v in flota %}
+          {% set precio = v.tarifa|default(v.tarifa_dia)|int %}
+          {% set veces = v.veces_alquilado or 0 %}
+          {% set rating = 4.5 + ((v.id * 7) % 6) * 0.1 %}
+          {% set reviews = 96 + veces * 11 + v.id * 13 %}
+          {% set pax = 2 if v.categoria in ('deportivo', 'convertible') else (7 if v.categoria == 'suv' else 5) %}
+          <div class="col-md-6 col-xl-4 an3-col">
+            <article class="an3-card"
+                     data-title="{{ v.marca|lower }} {{ v.modelo|lower }} {{ v.placa|lower }}"
+                     data-precio="{{ precio }}"
+                     data-trans="{{ (v.transmision or '')|lower }}"
+                     data-comb="{{ (v.combustible or '')|lower }}"
+                     data-cat="{{ v.categoria }}"
+                     data-pax="{{ pax }}"
+                     data-rating="{{ '%.1f'|format(rating) }}"
+                     data-idx="{{ loop.index }}">
+              <div class="an3-media">
+                <img src="{{ url_for('static', filename='media/' ~ v.imagen) }}" alt="{{ v.marca }} {{ v.modelo }}" loading="lazy">
+                {% if veces and veces == max_veces %}
+                <span class="an3-badge b-green">+ Más alquilado</span>
+                {% elif v.estado == 'disponible' %}
+                <span class="an3-badge b-green">Disponible</span>
+                {% elif v.estado == 'alquilado' %}
+                <span class="an3-badge b-ink">+ Premium</span>
+                {% elif v.estado == 'reservada' %}
+                <span class="an3-badge b-blue">Reservado</span>
+                {% elif v.estado == 'mantenimiento' %}
+                <span class="an3-badge b-amber">Mantenimiento</span>
+                {% else %}
+                <span class="an3-badge b-slate">No disponible</span>
+                {% endif %}
+                <button class="an2-heart" type="button" title="Guardar en favoritos" aria-label="Favorito">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20.5S4.5 16 2.9 11.7A4.9 4.9 0 0 1 12 6.7a4.9 4.9 0 0 1 9.1 5C19.5 16 12 20.5 12 20.5Z"/></svg>
+                </button>
+                <div class="an3-overlay"></div>
+                <div class="an3-price"><b>${{ precio }}</b><span>/día</span></div>
+              </div>
+              <div class="an3-cbody">
+                <div class="an3-brandrow">{{ v.marca }}{% if v.anio %} · {{ v.anio }}{% endif %}</div>
+                <h3 class="an3-cardtitle">{{ v.modelo }}</h3>
+                <div class="an3-stars">★★★★★ <span>({{ '%.1f'|format(rating) }}) · {{ reviews }} opiniones</span></div>
+                <div class="an3-specs">
+                  <span><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><circle cx="12" cy="7" r="3.2"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0v.5h-13V21Z"/></svg>{{ pax }} Asientos</span>
+                  <span><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M11 3h2v18h-2V3ZM4 5h9v2H4V5ZM11 11h9v2h-9v-2ZM4 17h9v2H4v-2Z"/></svg>{{ 'Automático' if v.transmision == 'automatica' else ('Manual' if v.transmision == 'manual' else 'Automática') }}</span>
+                  <span><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 2.5s6.5 7 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 9.5 12 2.5 12 2.5Z"/></svg>{{ v.combustible or 'Gasolina' }}</span>
+                </div>
+                <a href="{{ url_for('vehiculo', id=v.id) }}" class="an3-btnbook">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+                  Alquilar ahora <span class="arw">→</span>
+                </a>
+              </div>
+            </article>
+          </div>
+          {% else %}
+          <div class="col-12"><div class="an3-empty">No hay vehículos registrados en la base de datos todavía.</div></div>
+          {% endfor %}
+        </div>
+
+        <div id="an3Empty" class="an3-empty" hidden>
+          No encontramos vehículos con esos filtros.<br>
+          <button id="an3Clear" type="button">Limpiar filtros</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var grid = document.getElementById('an3Grid');
+  if (!grid) return;
+  var cols = Array.prototype.slice.call(grid.querySelectorAll('.an3-col'));
+  var info = cols.map(function (col, i) {
+    return { col: col, card: col.querySelector('.an3-card'), idx: i };
+  });
+  if (!info.length) return;
+
+  var q = document.getElementById('an3Search');
+  var price = document.getElementById('an3Precio');
+  var elMin = document.getElementById('an3Pmin');
+  var elMax = document.getElementById('an3Pmax');
+  var elTotal = document.getElementById('an3Total');
+  var emptyBox = document.getElementById('an3Empty');
+  var ordenar = document.getElementById('an3Ordenar');
+
+  // Rango de precios real de la flota
+  var precios = info.map(function (x) { return +x.card.dataset.precio; });
+  var lo = Math.min.apply(null, precios);
+  var hi = Math.max.apply(null, precios);
+  price.min = Math.floor(lo / 10) * 10;
+  price.max = Math.ceil(hi / 10) * 10;
+  price.value = price.max;
+  elMin.textContent = '$' + price.min;
+  function pintaMax() { elMax.textContent = 'Hasta $' + price.value + '/día'; }
+  pintaMax();
+
+  // Coincidencia de transmisión/combustible
+  function matchTrans(d, val) {
+    if (val === 'hibrido') return /h[ií]br/.test(d.comb);
+    if (val === 'electrico') return /el[eé]c/.test(d.comb) || d.cat === 'electrico';
+    return d.trans === val;
+  }
+
+  // Conteos junto a cada filtro
+  Array.prototype.forEach.call(document.querySelectorAll('.an3-count'), function (el) {
+    var k = el.dataset.count.split('-');
+    var kind = k[0], val = k.slice(1).join('-');
+    var n = info.filter(function (x) {
+      var d = x.card.dataset;
+      return kind === 'trans' ? matchTrans(d, val) : d.cat === val;
+    }).length;
+    el.textContent = n || '';
+  });
+
+  function apply() {
+    var texto = (q.value || '').trim().toLowerCase();
+    var maxP = +price.value;
+    var trans = Array.prototype.map.call(document.querySelectorAll('.f-trans:checked'), function (c) { return c.value; });
+    var cats = Array.prototype.map.call(document.querySelectorAll('.f-cat:checked'), function (c) { return c.value; });
+    var paxSel = Array.prototype.map.call(document.querySelectorAll('.f-pax.sel'), function (b) { return +b.dataset.pax; });
+    var paxMin = paxSel.length ? Math.min.apply(null, paxSel) : 0;
+    var vis = 0;
+    info.forEach(function (x) {
+      var d = x.card.dataset;
+      var ok = (!texto || d.title.indexOf(texto) !== -1)
+        && (+d.precio <= maxP)
+        && (!trans.length || trans.some(function (t) { return matchTrans(d, t); }))
+        && (!cats.length || cats.indexOf(d.cat) !== -1)
+        && (+d.pax >= paxMin);
+      x.col.style.display = ok ? '' : 'none';
+      if (ok) vis++;
+    });
+    elTotal.textContent = vis;
+    emptyBox.hidden = vis > 0;
+  }
+
+  function ordenarCards() {
+    var modo = ordenar.value;
+    var fn = {
+      'precio-asc': function (x) { return +x.card.dataset.precio; },
+      'precio-desc': function (x) { return -x.card.dataset.precio; },
+      'rating': function (x) { return -parseFloat(x.card.dataset.rating); },
+      'recom': function (x) { return x.idx; }
+    }[modo] || function (x) { return x.idx; };
+    info.slice().sort(function (a, b) { return fn(a) - fn(b); })
+        .forEach(function (x) { grid.appendChild(x.col); });
+  }
+
+  q.addEventListener('input', apply);
+  price.addEventListener('input', function () { pintaMax(); apply(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.f-trans,.f-cat'), function (el) {
+    el.addEventListener('change', apply);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.f-pax'), function (b) {
+    b.addEventListener('click', function () { b.classList.toggle('sel'); apply(); });
+  });
+  ordenar.addEventListener('change', function () { ordenarCards(); apply(); });
+  document.getElementById('an3Aplicar').addEventListener('click', function () {
+    apply();
+    grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.getElementById('an3Clear').addEventListener('click', function () {
+    q.value = '';
+    price.value = price.max;
+    pintaMax();
+    Array.prototype.forEach.call(document.querySelectorAll('.f-trans:checked,.f-cat:checked'), function (c) { c.checked = false; });
+    Array.prototype.forEach.call(document.querySelectorAll('.f-pax.sel'), function (b) { b.classList.remove('sel'); });
+    apply();
+  });
+
+  var vg = document.getElementById('an3ViewGrid');
+  var vl = document.getElementById('an3ViewList');
+  vg.addEventListener('click', function () {
+    grid.classList.remove('an3-list');
+    vg.classList.add('active'); vl.classList.remove('active');
+  });
+  vl.addEventListener('click', function () {
+    grid.classList.add('an3-list');
+    vl.classList.add('active'); vg.classList.remove('active');
+  });
+
+  apply();
+})();
+</script>
+{% endblock %}

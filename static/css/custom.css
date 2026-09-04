@@ -1,0 +1,191 @@
+/* ============================================================
+   AutoNova · Estilos personalizados
+   Paleta del diseño Figma:
+     - Crema de fondo   : #F5F4EF
+     - Gris carbón      : #1E293B (navbar / footer / hero)
+     - Verde esmeralda  : #059669 (primario), #34D399 (acento)
+     - Grises slate     : #64748B / #94A3B8 / #334155 / #E2E8F0
+   ============================================================ */
+
+:root {
+  --an-cream:       #F5F4EF;
+  --an-white:       #FFFFFF;
+  --an-carbono:     #1E293B;
+  --an-emerald:     #059669;
+  --an-emerald-lt:  #34D399;
+  --an-slate-500:   #64748B;
+  --an-slate-400:   #94A3B8;
+  --an-slate-700:   #334155;
+  --an-line:        #E2E8F0;
+  --an-amber:       #F59E0B;
+  --an-red:         #EF4444;
+  --an-soft-emerald:#ECFDF5;
+  --font-head:  'Poppins', system-ui, sans-serif;
+  --font-body:  'Inter', system-ui, sans-serif;
+}
+
+/* ---------- Base ---------- */
+body {
+  font-family: var(--font-body);
+  background-color: var(--an-cream);
+  color: var(--an-carbono);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6,
+.navbar-brand, .card-title, .fi-display {
+  font-family: var(--font-head);
+}
+
+a { color: var(--an-emerald); text-decoration: none; }
+a:hover { color: #047857; }
+
+/* ---------- Navbar ---------- */
+.an-navbar {
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--an-line);
+  box-shadow: 0 1px 12px rgba(30, 41, 59, 0.06);
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.an-navbar .nav-link {
+  color: var(--an-slate-500);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 8px;
+  transition: color .15s ease, background .15s ease;
+}
+.an-navbar .nav-link:hover { color: var(--an-carbono); background: var(--an-cream); }
+.an-navbar .nav-link.active { color: var(--an-carbono); font-weight: 600; }
+
+.an-brand {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+  color: var(--an-carbono);
+}
+.an-brand .an-dot { color: var(--an-emerald); }
+
+/* ---------- Botones ---------- */
+.btn-an {
+  background: var(--an-emerald);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 9px;
+  padding: 0.6rem 1.25rem;
+  box-shadow: 0 4px 18px rgba(5, 150, 105, 0.35);
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn-an:hover { background: #047857; color: #fff; transform: translateY(-1px); }
+
+.btn-an-outline {
+  background: transparent;
+  color: var(--an-carbono);
+  font-weight: 600;
+  border: 1px solid var(--an-line);
+  border-radius: 9px;
+  padding: 0.6rem 1.25rem;
+}
+.btn-an-outline:hover { border-color: var(--an-emerald); color: var(--an-emerald); }
+
+.btn-an-ghost {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+/* ---------- Hero ---------- */
+.an-hero {
+  min-height: 72vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background:
+    linear-gradient(0deg, rgba(12,20,36,.5) 0%, rgba(12,20,36,0) 40%),
+    linear-gradient(100deg, rgba(12,20,36,.88) 0%, rgba(12,20,36,.55) 45%, rgba(12,20,36,.15) 100%),
+    url('../media/hero.jpg') center/cover no-repeat;
+}
+.an-hero::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0; height: 3px;
+  background: linear-gradient(90deg, var(--an-emerald) 0%, rgba(5,150,105,0) 60%);
+}
+.an-hero .display-3 { color: #fff; }
+.an-hero .lead { color: rgba(255,255,255,.8); }
+.an-hero-eyebrow {
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: .8125rem;
+  color: var(--an-emerald-lt);
+}
+
+/* ---------- Cards / vehículos ---------- */
+.an-card {
+  background: var(--an-white);
+  border: 1px solid var(--an-line);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(30,41,59,.05);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.an-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(30,41,59,.10); }
+.an-card .an-media { aspect-ratio: 16 / 10; object-fit: cover; width: 100%; }
+.an-card .an-brand-chip {
+  font-size: .7rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--an-slate-400);
+}
+.an-card .an-price { color: var(--an-carbono); font-weight: 700; }
+
+/* Badges de estado */
+.an-badge { font-size: .75rem; font-weight: 600; padding: .35rem .7rem; border-radius: 20px; }
+.an-badge-ok  { background: var(--an-soft-emerald); color: var(--an-emerald); }
+.an-badge-warn{ background: #FEF3C7; color: #B45309; }
+.an-badge-off { background: #FEE2E2; color: #B91C1C; }
+
+/* ---------- Secciones ---------- */
+.an-section-eyebrow {
+  letter-spacing: .1em; text-transform: uppercase;
+  font-weight: 700; font-size: .75rem; color: var(--an-emerald);
+}
+.an-chip {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: var(--an-soft-emerald); color: var(--an-emerald);
+  border: 1px solid #D1FAE5; font-size: .8125rem; font-weight: 600;
+  padding: .3rem .8rem; border-radius: 20px;
+}
+
+/* ---------- Formularios (login / registro) ---------- */
+.auth-page { min-height: 100vh; }
+.auth-side {
+  background:
+    linear-gradient(0deg, rgba(12,20,36,.55) 0%, rgba(12,20,36,.15) 100%),
+    url('../media/auth.jpg') center/cover no-repeat;
+  color: #fff;
+  min-height: 100%;
+}
+.auth-form .form-control,
+.auth-form .form-select {
+  border-radius: 10px; border-color: var(--an-line);
+  padding: .7rem .9rem; font-size: .9rem;
+}
+.auth-form .form-control:focus { border-color: var(--an-emerald); box-shadow: 0 0 0 .2rem rgba(5,150,105,.15); }
+.auth-form .form-label { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--an-slate-500); }
+.auth-stat { text-align: center; }
+.auth-stat .num { font-family: var(--font-head); font-weight: 800; font-size: 1.4rem; }
+
+/* ---------- Footer ---------- */
+.an-footer { background: var(--an-carbono); color: rgba(255,255,255,.7); }
+.an-footer a { color: rgba(255,255,255,.7); }
+.an-footer a:hover { color: #fff; }
+.an-footer h6 { color: #fff; letter-spacing: .08em; }
+
+  border-radius: 9px;
+  padding: 0.6rem 1.25rem;
+}
+.btn-an-ghost:hover { background: rgba(255, 255, 255, 0.18); color: #fff; }

@@ -1,0 +1,54 @@
+<!-- Modal: añadir usuario (sección Clientes) -->
+<div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <form class="modal-content" method="post" action="{{ url_for('admin_usuario_nuevo') }}">
+      <input type="hidden" name="destino" value="{{ destino or url_for('admin_clientes') }}">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Añadir usuario</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Nombre *</label>
+            <input class="form-control" name="nombre" required placeholder="Ana">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Apellidos</label>
+            <input class="form-control" name="apellidos" placeholder="García López">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Correo electrónico *</label>
+            <input class="form-control" type="email" name="email" required placeholder="ana@mail.com">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Contraseña *</label>
+            <input class="form-control" type="password" name="password" required minlength="6"
+                   placeholder="Mínimo 6 caracteres">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Teléfono</label>
+            <input class="form-control" name="telefono" placeholder="+52 81 0000 0000">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Licencia de conducir</label>
+            <input class="form-control" name="licencia" placeholder="Nº de licencia">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Rol</label>
+            <select class="form-select" name="rol">
+              <option value="cliente" selected>Cliente</option>
+              <option value="staff">Staff</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-text mt-2">La contraseña se guarda cifrada (scrypt). La cuenta se crea activa y puede iniciar sesión de inmediato.</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-an">Crear usuario</button>
+      </div>
+    </form>
+  </div>
+</div>

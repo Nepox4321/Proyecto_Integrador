@@ -1,0 +1,92 @@
+{% extends 'admin_base.html' %}
+{% block title %}Reservas{% endblock %}
+{% block page %}admin-reservas{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <p class="an-section-eyebrow mb-0">Panel de administración</p>
+  <h1 class="h3 fw-bold mb-0">Reservas · {{ total_reservas|default(reservas|length) }} registradas</h1>
+</div>
+
+<div class="an-table-card p-0">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Cliente</th>
+          <th scope="col">Vehículo</th>
+          <th scope="col">Periodo</th>
+          <th scope="col">Inicio real</th>
+          <th scope="col">Total</th>
+          <th scope="col">Tipo</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reservas %}
+        <tr>
+          <td class="text-muted">#{{ r.id }}</td>
+          <td>
+            {% if r.usuario %}
+            <div class="fw-bold">{{ r.usuario.nombre }} {{ r.usuario.apellidos or '' }}</div>
+            <div class="small text-muted">{{ r.usuario.email }}</div>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if r.vehiculo %}
+            <div class="fw-bold">{{ r.vehiculo.marca }} {{ r.vehiculo.modelo }}</div>
+            <div class="small text-muted">{{ r.vehiculo.placa }}</div>
+            {% else %}—{% endif %}
+          </td>
+          <td class="small">
+            {{ r.fecha_inicio.strftime('%d/%m/%Y') if r.fecha_inicio else '—' }}
+            → {{ r.fecha_fin.strftime('%d/%m/%Y') if r.fecha_fin else '—' }}
+          </td>
+          <td class="small">
+            {{ r.inicio_alquiler.strftime('%d/%m/%Y %H:%M:%S') if r.inicio_alquiler else 'Pendiente' }}
+          </td>
+          <td><b>${{ r.total or '—' }}</b></td>
+          <td>{{ (r.tipo or '—')|capitalize }}</td>
+          <td>
+            <span class="an-badge an-badge-{{ {'pendiente':'warn','confirmada':'ok','en_uso':'warn','completada':'off','cancelada':'off'}.get(r.estado, 'off') }}">{{ (r.estado or '—')|capitalize }}</span>
+          </td>
+          <td>
+            <div class="d-flex gap-2 flex-wrap">
+              {% if r.estado == 'pendiente' %}
+              <form method="post" action="{{ url_for('admin_reserva_estado', rid=r.id) }}">
+                <input type="hidden" name="estado" value="confirmada">
+                <button class="btn btn-sm btn-outline-success">Confirmar</button>
+              </form>
+              {% elif r.estado == 'confirmada' %}
+              <form method="post" action="{{ url_for('admin_reserva_estado', rid=r.id) }}">
+                <input type="hidden" name="estado" value="en_uso">
+                <button class="btn btn-sm btn-outline-primary">En uso</button>
+              </form>
+              {% elif r.estado == 'en_uso' %}
+              <form method="post" action="{{ url_for('admin_reserva_estado', rid=r.id) }}">
+                <input type="hidden" name="estado" value="completada">
+                <button class="btn btn-sm btn-outline-success">Completar</button>
+              </form>
+              {% endif %}
+              {% if r.estado not in ('cancelada', 'completada') %}
+              <form method="post" action="{{ url_for('admin_reserva_estado', rid=r.id) }}"
+                    onsubmit="return confirm('¿Cancelar la reserva #{{ r.id }}?');">
+                <input type="hidden" name="estado" value="cancelada">
+                <button class="btn btn-sm btn-outline-danger">Cancelar</button>
+              </form>
+              {% else %}
+              <span class="text-muted small align-self-center">—</span>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center text-muted py-4">No hay reservas registradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

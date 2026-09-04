@@ -1,0 +1,134 @@
+{% extends 'admin_base.html' %}
+{% block title %}Panel Admin{% endblock %}
+{% block page %}admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <p class="an-section-eyebrow mb-0">Panel de administración</p>
+    <h1 class="h3 fw-bold mb-0">Dashboard · Visualización general</h1>
+  </div>
+  <a href="{{ url_for('catalogo') }}" class="btn btn-an-outline btn-sm">Ver tienda</a>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+  {% set kpis = [
+    {'label':'Usuarios registrados','valor': total_usuarios|default(0), 'trend':'cuentas'},
+    {'label':'Vehículos en flota','valor': total_vehiculos|default(0), 'trend':'en catálogo'},
+    {'label':'Disponibles ahora','valor': kpi_disponibles|default(0), 'trend':'para alquilar'},
+    {'label':'Módulos ESP32','valor': kpi_esp_conectados|default(0), 'trend':'conectados'}
+  ] %}
+  {% for k in kpis %}
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card">
+      <div class="kpi-label">{{ k.label }}</div>
+      <div class="kpi-value">{{ k.valor }}</div>
+      <div class="kpi-trend up">{{ k.trend }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-4">
+  <!-- Tabla flota -->
+  <div class="col-xl-8">
+    <div class="an-table-card p-0">
+      <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+        <h3 class="h6 fw-bold mb-0">Gestión de flota</h3>
+        <div class="d-flex gap-2">
+          <a class="btn btn-an-outline btn-sm" href="{{ url_for('admin_vehiculos') }}">Ver todo</a>
+          <button class="btn btn-an btn-sm" data-bs-toggle="modal" data-bs-target="#modalVehiculo">+ Añadir vehículo</button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th scope="col">Vehículo</th>
+              <th scope="col">Placa</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Tarifa</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in flota %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-3">
+                  <img src="{{ url_for('static', filename='media/' ~ v.imagen) }}" class="an-thumb" alt="">
+                  <div>
+                    <div class="small text-muted text-uppercase">{{ v.marca }}</div>
+                    <div class="fw-bold">{{ v.modelo }}</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="an-plate">{{ v.placa }}</span></td>
+              <td>
+                <span class="an-badge an-badge-{{ 'warn' if v.estado == 'alquilado' else ('off' if v.estado in ('reservada', 'mantenimiento', 'baja') else 'ok') }}">{{ v.estado|capitalize }}</span>
+              </td>
+              <td><b>${{ v.tarifa_dia }}</b><span class="text-muted small">/día</span></td>
+              <td>
+                <div class="d-flex gap-2">
+                  <a class="btn btn-sm btn-light" href="{{ url_for('vehiculo', id=v.id) }}">Ver</a>
+                  {% if v.estado == 'baja' %}
+                  <form method="post" action="{{ url_for('admin_vehiculo_estado', vid=v.id) }}">
+                    <input type="hidden" name="estado" value="disponible">
+                    <input type="hidden" name="destino" value="{{ url_for('admin') }}">
+                    <button class="btn btn-sm btn-outline-success">Reactivar</button>
+                  </form>
+                  {% else %}
+                  <form method="post" action="{{ url_for('admin_vehiculo_estado', vid=v.id) }}"
+                        onsubmit="return confirm('¿Dar de baja {{ v.marca }} {{ v.modelo }}?');">
+                    <input type="hidden" name="estado" value="baja">
+                    <input type="hidden" name="destino" value="{{ url_for('admin') }}">
+                    <button class="btn btn-sm btn-outline-danger">Baja</button>
+                  </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No hay vehículos en la base de datos.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Módulos ESP32 (resumen) -->
+  <div class="col-xl-4">
+    <div class="an-table-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h6 fw-bold mb-0">Monitoreo Módulos ESP32</h3>
+        <a class="small" href="{{ url_for('admin_esp32') }}">Ver todo →</a>
+      </div>
+
+      <ul class="list-unstyled d-flex flex-column gap-3 mb-3" id="espList">
+        {% for m in modulos %}
+        <li class="esp-card p-3" data-esp-status="{{ m.estado }}" data-codigo="{{ m.codigo }}">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-bold">{{ m.nombre }}</div>
+              <div class="esp-id mt-1">ID: {{ m.codigo }}</div>
+            </div>
+            <span class="status-pill {{ m.clase }}"><span class="dot"></span><span data-status-label>{{ m.estado|capitalize }}</span></span>
+          </div>
+          {% if m.estado in ('conectado', 'esperando') %}
+          <span class="t-elapsed mt-2 d-block" data-elapsed data-live-since="{{ m.live_since or now_ms() }}">—</span>
+          {% endif %}
+        </li>
+        {% else %}
+        <li class="text-muted small">No hay módulos registrados en la base de datos.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+{% with destino = url_for('admin') %}
+  {% include 'admin_modal_vehiculo.html' %}
+{% endwith %}
+{% endblock %}

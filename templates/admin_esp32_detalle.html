@@ -1,0 +1,134 @@
+{% extends 'admin_base.html' %}
+{% block title %}{{ m.nombre }} · Telemetría{% endblock %}
+{% block page %}admin-esp32{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <p class="an-section-eyebrow mb-0"><a href="{{ url_for('admin_esp32') }}">← Módulos ESP32</a></p>
+    <h1 class="h3 fw-bold mb-0">{{ m.nombre }} · Telemetría</h1>
+  </div>
+  <div class="d-flex gap-2 align-items-center" data-esp-status="{{ m.estado }}" data-codigo="{{ m.codigo }}">
+    <span class="status-pill {{ m.clase_estado }}"><span class="dot"></span><span data-status-label>{{ m.estado|capitalize }}</span></span>
+    <form method="post" action="{{ url_for('admin_esp32_comando', mid=m.id) }}">
+      <input type="hidden" name="comando" value="ping">
+      <input type="hidden" name="destino" value="{{ url_for('admin_esp32_telemetria', mid=m.id) }}">
+      <button class="btn btn-an btn-sm">Enviar ping</button>
+    </form>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Información del módulo -->
+  <div class="col-lg-4">
+    <div class="esp-card p-3 h-100">
+      <div class="fw-bold mb-2">Información del módulo</div>
+      <dl class="small mb-0">
+        <div class="d-flex justify-content-between border-bottom py-1">
+          <dt class="text-muted fw-normal">Código</dt>
+          <dd class="mb-0 font-monospace">{{ m.codigo }}</dd>
+        </div>
+        <div class="d-flex justify-content-between border-bottom py-1">
+          <dt class="text-muted fw-normal">ID Arduino</dt>
+          <dd class="mb-0 font-monospace">módulo {{ m.id }}</dd>
+        </div>
+        <div class="d-flex justify-content-between border-bottom py-1">
+          <dt class="text-muted fw-normal">Vehículo</dt>
+          <dd class="mb-0">{% if m.vehiculo %}{{ m.vehiculo.marca }} {{ m.vehiculo.modelo }}{% else %}—{% endif %}</dd>
+        </div>
+        <div class="d-flex justify-content-between border-bottom py-1">
+          <dt class="text-muted fw-normal">IP local</dt>
+          <dd class="mb-0 font-monospace">{{ m.ip_local or '—' }}</dd>
+        </div>
+        <div class="d-flex justify-content-between border-bottom py-1">
+          <dt class="text-muted fw-normal">Firmware</dt>
+          <dd class="mb-0 font-monospace">{{ m.firmware or '—' }}</dd>
+        </div>
+        <div class="d-flex justify-content-between border-bottom py-1">
+          <dt class="text-muted fw-normal">Endpoint</dt>
+          <dd class="mb-0 font-monospace small">{{ m.endpoint_api or '—' }}</dd>
+        </div>
+        <div class="d-flex justify-content-between border-bottom py-1">
+          <dt class="text-muted fw-normal">Último heartbeat</dt>
+          <dd class="mb-0 font-monospace">{{ m.ultimo_heartbeat.strftime('%d/%m/%Y %H:%M') if m.ultimo_heartbeat else 'Sin señal' }}</dd>
+        </div>
+        <div class="d-flex justify-content-between py-1">
+          <dt class="text-muted fw-normal">Lecturas totales</dt>
+          <dd class="mb-0 fw-bold">{{ total_lecturas }}</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+  <!-- Historial de lecturas -->
+  <div class="col-lg-8">
+    <div class="an-table-card p-0 h-100">
+      <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+        <h3 class="h6 fw-bold mb-0">Historial de lecturas</h3>
+        <span class="small text-muted">Últimas 100</span>
+      </div>
+      <div class="table-responsive" style="max-height:520px">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="sticky-top bg-white">
+            <tr>
+              <th scope="col">Fecha</th>
+              <th scope="col">Latitud</th>
+              <th scope="col">Longitud</th>
+              <th scope="col">Vel.</th>
+              <th scope="col">Batería</th>
+              <th scope="col">Motor</th>
+              <th scope="col">RSSI</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in lecturas %}
+            <tr>
+              <td class="small font-monospace">{{ t.leido_en.strftime('%d/%m/%Y %H:%M:%S') if t.leido_en else '—' }}</td>
+              <td class="small font-monospace">{{ t.lat if t.lat is not none else '—' }}</td>
+              <td class="small font-monospace">{{ t.lng if t.lng is not none else '—' }}</td>
+              <td>{{ t.velocidad if t.velocidad is not none else '—' }} km/h</td>
+              <td>{{ t.bateria if t.bateria is not none else '—' }}%</td>
+              <td><span class="an-badge an-badge-{{ 'ok' if t.motor == 'on' else 'off' }}">{{ t.motor or '—' }}</span></td>
+              <td class="font-monospace">{{ t.rssi if t.rssi is not none else '—' }} dBm</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="text-center text-muted py-4">Este módulo todavía no ha enviado telemetría.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Comandos del módulo -->
+<div class="an-table-card p-0 mt-4">
+  <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+    <h3 class="h6 fw-bold mb-0">Historial de comandos</h3>
+    <span class="small text-muted">Últimos 30</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th scope="col">Comando</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Creado</th>
+          <th scope="col">Entregado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in comandos %}
+        <tr>
+          <td><span class="an-plate">{{ c.comando }}</span></td>
+          <td><span class="an-badge an-badge-{{ 'ok' if c.estado == 'entregado' else 'warn' }}">{{ c.estado }}</span></td>
+          <td class="small font-monospace">{{ c.creado_en.strftime('%d/%m/%Y %H:%M:%S') if c.creado_en else '—' }}</td>
+          <td class="small font-monospace">{{ c.entregado_en.strftime('%d/%m/%Y %H:%M:%S') if c.entregado_en else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-center text-muted py-4">Sin comandos para este módulo.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

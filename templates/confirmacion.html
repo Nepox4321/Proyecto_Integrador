@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Reserva confirmada · AutoNova{% endblock %}
+{% block page %}alquilar{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <div class="an-card p-5 text-center mx-auto" style="max-width: 640px;">
+      <div class="an-chip mx-auto mb-3 fs-4">✓</div>
+      <span class="an-section-eyebrow d-block mb-2">Reserva confirmada</span>
+      <h1 class="h3 fw-bold mb-2">¡Gracias, {{ nombre or 'cliente' }}!</h1>
+      <p class="text-muted mb-4">Tu reserva quedó registrada en nuestra base de datos y asociada a tu cuenta. Nos pondremos en contacto para coordinar la entrega.</p>
+
+      <div class="text-start mx-auto" style="max-width: 420px;">
+        <div class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Vehículo</span><b>{{ vehiculo or 'Mercedes-Benz Clase E 400' }}</b></div>
+        <div class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">A cuenta de</span><b>{{ nombre or '—' }}{% if email %} · {{ email }}{% endif %}</b></div>
+        <div class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Fecha de inicio</span><b>{{ fecha_inicio or '—' }}</b></div>
+        <div class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Fecha de fin</span><b>{{ fecha_fin or '—' }}</b></div>
+        <div class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Referencia</span><b>{{ codigo or 'AN-1001' }}</b></div>
+        <div class="d-flex justify-content-between py-2 fw-bold"><span>Total</span><span>${{ total or '128.00' }}</span></div>
+      </div>
+
+      <div class="d-flex gap-2 justify-content-center mt-4 flex-wrap">
+        <a href="{{ url_for('catalogo') }}" class="btn btn-an-outline">Seguir explorando</a>
+        <a href="{{ url_for('inicio') }}" class="btn btn-an">Volver al inicio</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

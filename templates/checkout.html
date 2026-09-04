@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Checkout · AutoNova{% endblock %}
+{% block page %}alquilar{% endblock %}
+
+{% block content %}
+{% set v = v or {'id':1,'marca':'Mercedes-Benz','modelo':'Clase E 400','tarifa_dia':'128','imagen':'vehiculo1.jpg'} %}
+
+<section class="py-5">
+  <div class="container">
+    <p class="an-section-eyebrow mb-1">Checkout</p>
+    <h1 class="fw-bold h2 mb-4">Confirma tu reserva</h1>
+
+    <form method="post" action="{{ url_for('checkout', id=v.id) }}" class="row g-5">
+      <div class="col-lg-5">
+        <div class="an-card p-3 d-flex align-items-center gap-3">
+          <img src="{{ url_for('static', filename='media/' ~ v.imagen) }}" class="rounded-3" style="width:96px;height:70px;object-fit:cover" alt="mini">
+          <div>
+            <span class="an-brand-chip">{{ v.marca }}</span>
+            <h5 class="mb-0">{{ v.modelo }}</h5>
+            <span class="text-muted small" style="font-family:'Courier New',monospace">{{ v.placa }}</span>
+          </div>
+        </div>
+
+        <div class="an-card p-4 my-3">
+          <p class="fw-bold mb-3">Detalle del costo</p>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Tarifa diaria</span>
+            <b>${{ v.tarifa_dia }}</b>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Días <span id="diasReserva">1 día(s)</span></span>
+            <span>—</span>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between fs-5">
+            <span class="fw-bold">Total estimado</span>
+            <b id="totalReserva" data-total="$128">$128</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7">
+        <h3 class="h5 fw-bold mb-1">Datos del solicitante</h3>
+        <p class="small text-success mb-3">✓ Reservando con tu cuenta registrada:
+          <b>{{ user.nombre }} ({{ user.email }})</b></p>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Nombre completo *</label>
+            <input class="form-control" name="nombre" required value="{{ (user.nombre ~ ' ' ~ (user.apellidos or ''))|trim }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Correo electrónico (tu cuenta)</label>
+            <input class="form-control" name="email" type="email" value="{{ user.email or '' }}" readonly>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Teléfono *</label>
+            <input class="form-control" name="telefono" type="tel" required value="{{ user.telefono or '' }}" placeholder="+52 81 0000 0000">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Licencia de conducir</label>
+            <input class="form-control" name="licencia" value="{{ user.licencia or '' }}" placeholder="Nº de licencia">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Fecha de inicio *</label>
+            <input class="form-control" id="fechaInicio" name="fecha_inicio" type="date" required value="{{ request.args.get('fecha_inicio', '') }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Fecha de fin *</label>
+            <input class="form-control" id="fechaFin" name="fecha_fin" type="date" required value="{{ request.args.get('fecha_fin', '') }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Sucursal de entrega</label>
+            <select class="form-select" name="sucursal">
+              <option>Monterrey Centro</option>
+              <option>San Pedro Garza</option>
+              <option>Guadalajara</option>
+              <option>CDMX Polanco</option>
+            </select>
+          </div>
+        </div>
+
+        <input type="hidden" id="tarifaDia" value="{{ v.tarifa_dia }}" data-total="{{ v.tarifa_dia }}">
+
+        <div class="form-check mt-4">
+          <input class="form-check-input" type="checkbox" id="terminos" required>
+          <label class="form-check-label small" for="terminos">Acepto los Términos de servicio y la Política de privacidad de AutoNova.</label>
+        </div>
+
+        <button type="submit" class="btn btn-an btn-lg w-100 mt-4">Confirmar y reservar →</button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

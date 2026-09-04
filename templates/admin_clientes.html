@@ -1,0 +1,83 @@
+{% extends 'admin_base.html' %}
+{% block title %}Clientes{% endblock %}
+{% block page %}admin-clientes{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div>
+    <p class="an-section-eyebrow mb-0">Panel de administración</p>
+    <h1 class="h3 fw-bold mb-0">Clientes · {{ clientes|length }} cuentas</h1>
+  </div>
+  <button class="btn btn-an btn-sm" data-bs-toggle="modal" data-bs-target="#modalUsuario">+ Añadir usuario</button>
+</div>
+
+<div class="an-table-card p-0">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Cliente</th>
+          <th scope="col">Contacto</th>
+          <th scope="col">Licencia</th>
+          <th scope="col">Rol</th>
+          <th scope="col">Reservas</th>
+          <th scope="col">Registro</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in clientes %}
+        <tr>
+          <td class="text-muted">{{ u.id_usuario }}</td>
+          <td>
+            <div class="fw-bold">{{ u.nombre }} {{ u.apellidos or '' }}</div>
+            {% if u.rol == 'admin' %}<span class="badge bg-dark">Administrador</span>{% endif %}
+          </td>
+          <td class="small">
+            <div>{{ u.email }}</div>
+            <div class="text-muted">{{ u.telefono or '—' }}</div>
+          </td>
+          <td class="small text-muted">{{ u.licencia or '—' }}</td>
+          <td>{{ (u.rol or 'cliente')|capitalize }}</td>
+          <td>{{ u.reservas|length }}</td>
+          <td class="small text-muted">{{ u.creado_en.strftime('%d/%m/%Y') if u.creado_en else '—' }}</td>
+          <td>
+            <span class="an-badge an-badge-{{ 'ok' if u.es_activo else 'off' }}">{{ 'Activa' if u.es_activo else 'Inactiva' }}</span>
+          </td>
+          <td>
+            <div class="d-flex gap-2">
+              {% if u.rol == 'admin' %}
+              <span class="text-muted small align-self-center">—</span>
+              {% else %}
+              {% if u.es_activo %}
+              <form method="post" action="{{ url_for('admin_cliente_toggle', uid=u.id_usuario) }}"
+                    onsubmit="return confirm('¿Desactivar la cuenta de {{ u.nombre }}?');">
+                <button class="btn btn-sm btn-outline-warning">Desactivar</button>
+              </form>
+              {% else %}
+              <form method="post" action="{{ url_for('admin_cliente_toggle', uid=u.id_usuario) }}">
+                <button class="btn btn-sm btn-outline-success">Activar</button>
+              </form>
+              {% endif %}
+              <form method="post" action="{{ url_for('admin_usuario_eliminar', uid=u.id_usuario) }}"
+                    onsubmit="return confirm('¿ELIMINAR definitivamente la cuenta de {{ u.nombre }}? Esta acción no se puede deshacer.');">
+                <button class="btn btn-sm btn-outline-danger">Eliminar</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center text-muted py-4">No hay cuentas registradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% with destino = url_for('admin_clientes') %}
+  {% include 'admin_modal_usuario.html' %}
+{% endwith %}
+{% endblock %}

@@ -1,0 +1,187 @@
+/* ============================================================
+   AutoNova · home.css — Rediseño según Figma
+   (navbar/hero/footer oscuros, acento #059669, prefijo an2-)
+   ============================================================ */
+:root{
+  --an2-green:#059669;
+  --an2-green-dark:#047857;
+  --an2-green-light:#34D399;
+  --an2-ink:#0F172A;
+  --an2-ink-soft:#1E293B;
+  --an2-slate:#64748B;
+  --an2-border:#E2E8F0;
+  --an2-cream:#F5F4EF;
+}
+
+/* ---------- Navbar ---------- */
+.an2-navbar{background:var(--an2-ink);border-bottom:1px solid rgba(255,255,255,.08);padding:.65rem 0}
+.an2-navbar .navbar-toggler{border-color:rgba(255,255,255,.25)}
+.an2-navbar .navbar-toggler-icon{filter:invert(1)}
+.an2-brand{display:inline-flex;align-items:center;gap:10px;color:#fff;font-family:Poppins,Inter,sans-serif;font-weight:800;font-size:20px;letter-spacing:-.01em}
+.an2-brand:hover{color:#fff}
+.an2-logo{width:34px;height:34px;border-radius:10px;background:var(--an2-green);display:inline-flex;align-items:center;justify-content:center;color:#fff;flex:0 0 auto}
+.an2-brand .an2-green,.an2-green{color:var(--an2-green-light)}
+.an2-navbar .nav-link{color:rgba(255,255,255,.66);font:500 13px/1.2 Inter,sans-serif;padding:.55rem .85rem!important;border-radius:8px}
+.an2-navbar .nav-link:hover,.an2-navbar .nav-link.active{color:#fff}
+.an2-navbar .nav-link .chev{font-size:10px;opacity:.7;margin-left:3px}
+.an2-user{color:rgba(255,255,255,.85);font:500 13px Inter,sans-serif}
+.an2-btn{display:inline-flex;align-items:center;gap:7px;border-radius:9px;padding:9px 18px;font:600 13px Inter,sans-serif;text-decoration:none;border:1px solid transparent;line-height:1.2}
+.an2-btn-outline{border-color:rgba(255,255,255,.22);color:#fff;background:transparent}
+.an2-btn-outline:hover{background:rgba(255,255,255,.08);color:#fff}
+.an2-btn-green{background:var(--an2-green);color:#fff}
+.an2-btn-green:hover{background:var(--an2-green-dark);color:#fff}
+.an2-icon-btn{width:38px;height:38px;border-radius:9px;border:1px solid rgba(255,255,255,.22);display:inline-flex;align-items:center;justify-content:center;color:#fff;background:transparent}
+.an2-icon-btn:hover{background:rgba(255,255,255,.08);color:#fff}
+.an2-chip-admin{border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;padding:8px 14px;font:600 12px Inter,sans-serif}
+.an2-chip-admin:hover{background:rgba(255,255,255,.08);color:#fff;text-decoration:none}
+
+/* ---------- Hero ---------- */
+.an2-hero{position:relative;background:var(--an2-ink);color:#fff;overflow:hidden}
+.an2-hero::before{content:"";position:absolute;inset:0;background-image:url("../media/hero.jpg");background-size:cover;background-position:center 55%;opacity:.5}
+.an2-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--an2-ink) 25%,rgba(15,23,42,.75) 55%,rgba(15,23,42,.2))}
+.an2-hero .container{position:relative;z-index:2}
+.an2-eyebrow{color:var(--an2-green-light);font:700 11px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;display:inline-flex;align-items:center;gap:8px}
+.an2-eyebrow::before{content:"";width:26px;height:2px;background:var(--an2-green);display:inline-block}
+.an2-hero h1{font-family:Poppins,Inter,sans-serif;font-weight:800;font-size:clamp(38px,5.2vw,60px);line-height:1.06;letter-spacing:-.02em}
+.an2-hero h1 .green{color:var(--an2-green)}
+.an2-hero-sub{color:rgba(255,255,255,.72);font:400 15px/1.65 Inter,sans-serif;max-width:520px}
+.an2-feats{display:flex;flex-wrap:wrap;gap:10px}
+.an2-feat{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.85);border-radius:999px;padding:8px 14px;font:600 12px Inter,sans-serif}
+
+/* ---------- Buscador ---------- */
+.an2-search{position:relative;z-index:3;margin-top:-34px}
+.an2-search-card{background:#fff;border:1px solid var(--an2-border);border-radius:16px;box-shadow:0 18px 40px -18px rgba(15,23,42,.35);padding:14px}
+.an2-search-field{padding:6px 18px;border-right:1px solid var(--an2-border);min-width:0}
+.an2-search-field label{display:block;font:700 10px Inter,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--an2-slate);margin-bottom:4px}
+.an2-search-field input{border:0;box-shadow:none!important;padding:2px 0;font:500 13.5px Inter,sans-serif;color:var(--an2-ink);width:100%;background:transparent;outline:none}
+.an2-search-field input::placeholder{color:#94A3B8}
+@media (max-width:991px){.an2-search-field{border-right:0;border-bottom:1px solid var(--an2-border);margin-bottom:6px}}
+
+/* ---------- Stats ---------- */
+.an2-stats{background:var(--an2-ink);color:#fff;padding:28px 0;margin-top:38px}
+.an2-stat-num{font-family:Poppins,Inter,sans-serif;font-weight:800;font-size:26px;letter-spacing:-.02em}
+.an2-stat-num .green{color:var(--an2-green-light)}
+.an2-stat-cap{color:rgba(255,255,255,.45);font:400 12.5px Inter,sans-serif}
+
+/* ---------- Sección destacados ---------- */
+.an2-section{padding:64px 0 26px;background:#fff}
+.an2-title{font-family:Poppins,Inter,sans-serif;font-weight:800;font-size:clamp(26px,3vw,34px);letter-spacing:-.02em;color:var(--an2-ink)}
+.an2-sec-sub{color:var(--an2-slate);font:400 13.5px/1.6 Inter,sans-serif}
+.an2-btn-dark{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--an2-border);color:var(--an2-ink);border-radius:9px;padding:10px 18px;font:600 13px Inter,sans-serif;background:#fff}
+.an2-btn-dark:hover{background:var(--an2-ink);color:#fff;border-color:var(--an2-ink)}
+.an2-filters{display:flex;flex-wrap:wrap;gap:8px}
+.an2-filter{border:1px solid var(--an2-border);background:#fff;color:var(--an2-slate);border-radius:999px;padding:8px 16px;font:600 12.5px Inter,sans-serif;cursor:pointer}
+.an2-filter:hover{color:var(--an2-ink)}
+.an2-filter.active{background:var(--an2-green);border-color:var(--an2-green);color:#fff}
+
+/* ---------- Cards ---------- */
+.an2-card{background:#fff;border:1px solid var(--an2-border);border-radius:16px;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease;height:100%}
+.an2-card:hover{transform:translateY(-4px);box-shadow:0 22px 44px -20px rgba(15,23,42,.25)}
+.an2-card-media{position:relative;height:180px;background:var(--an2-cream)}
+.an2-card-media img{width:100%;height:100%;object-fit:cover;display:block}
+.an2-price{position:absolute;left:12px;bottom:12px;background:rgba(15,23,42,.85);color:#fff;border-radius:10px;padding:6px 12px;line-height:1.15}
+.an2-price b{font-family:Poppins,sans-serif;font-weight:800;font-size:18px}
+.an2-price span{font:500 11px Inter,sans-serif;color:rgba(255,255,255,.7)}
+.an2-flag{position:absolute;top:12px;left:12px;border-radius:999px;padding:5px 11px;font:700 10.5px Inter,sans-serif;letter-spacing:.02em}
+.an2-flag.ok{background:rgba(5,150,105,.92);color:#fff}
+.an2-flag.warn{background:rgba(245,158,11,.92);color:#fff}
+.an2-flag.off{background:rgba(15,23,42,.75);color:#fff}
+.an2-heart{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);border:0;display:inline-flex;align-items:center;justify-content:center;color:var(--an2-ink)}
+.an2-heart:hover{color:#E11D48}
+.an2-card-body{padding:16px}
+.an2-card-brand{font:700 10.5px Inter,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--an2-slate)}
+.an2-card-title{font-family:Poppins,sans-serif;font-weight:700;font-size:19px;letter-spacing:-.01em;color:var(--an2-ink)}
+.an2-rating{color:var(--an2-green);font:700 12.5px Inter,sans-serif;white-space:nowrap}
+.an2-specs{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--an2-slate);font:500 12px Inter,sans-serif}
+.an2-card .an2-btn-green{width:100%;justify-content:center;padding:11px}
+
+/* ---------- CTA ---------- */
+.an2-cta{padding:10px 0 70px;text-align:center;background:#fff}
+.an2-cta p{color:var(--an2-slate);font:400 13.5px Inter,sans-serif}
+
+/* ---------- Footer ---------- */
+.an2-footer{background:var(--an2-ink);color:rgba(255,255,255,.66)}
+.an2-footer h6{color:#fff;font:700 12px Inter,sans-serif;letter-spacing:.09em;text-transform:uppercase;margin-bottom:16px}
+.an2-footer a.f-link{color:rgba(255,255,255,.66);text-decoration:none;font:400 13px Inter,sans-serif;display:inline-block;padding:3px 0}
+.an2-footer a.f-link:hover{color:#fff}
+.an2-footer .an2-brand{font-size:19px}
+.an2-footer-desc{font:400 13px/1.7 Inter,sans-serif;color:rgba(255,255,255,.5);max-width:280px}
+.an2-social{display:flex;gap:10px;margin-top:14px}
+.an2-social a{width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,.16);display:inline-flex;align-items:center;justify-content:center;color:#fff;font:700 12px Inter,sans-serif;padding:0}
+.an2-social a:hover{background:var(--an2-green);border-color:var(--an2-green);color:#fff}
+.an2-footer-bottom{border-top:1px solid rgba(255,255,255,.09);padding:16px 0;font:400 12.5px Inter,sans-serif;color:rgba(255,255,255,.4)}
+.an2-footer-bottom a{color:rgba(255,255,255,.4);text-decoration:none}
+.an2-footer-bottom a:hover{color:#fff}
+
+/* ---------- Auth · login/registro (Figma 27:9123) ---------- */
+.an2-auth{background:#FAF9F5}
+.an2-auth-grid{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 59px)}
+
+/* Panel izquierdo: imagen + copy */
+.an2-auth-side{display:none;position:relative;flex-direction:column;justify-content:space-between;padding:26px 38px 40px;color:#fff;background:linear-gradient(180deg,rgba(15,23,42,.30) 0%,rgba(15,23,42,.45) 50%,rgba(15,23,42,.88) 100%),url("../media/hero.jpg") center/cover no-repeat}
+@media(min-width:992px){.an2-auth-side{display:flex}}
+.an2-auth-side .an2-brand{color:#fff}
+.an2-auth-title{font-family:Poppins,Inter,sans-serif;font-weight:800;font-size:clamp(30px,2.8vw,40px);line-height:1.12;letter-spacing:-.02em;margin:12px 0 14px;color:#fff}
+.an2-auth-title .green{color:var(--an2-green-light)}
+.an2-auth-desc{color:rgba(255,255,255,.72);font:400 14px/1.7 Inter,sans-serif;max-width:380px;margin-bottom:24px}
+.an2-auth-social{display:flex;align-items:center;gap:12px}
+.an2-auth-avatars{display:flex}
+.an2-auth-avatars .av{width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,.9);display:inline-flex;align-items:center;justify-content:center;font:700 11px Inter,sans-serif;color:#fff;margin-left:-10px}
+.an2-auth-avatars .av:first-child{margin-left:0}
+.an2-auth-avatars .av1{background:linear-gradient(135deg,#F59E0B,#EF4444)}
+.an2-auth-avatars .av2{background:linear-gradient(135deg,#059669,#0F766E)}
+.an2-auth-avatars .av3{background:linear-gradient(135deg,#3B82F6,#8B5CF6)}
+.an2-auth-stars{color:#F59E0B;font-size:12px;letter-spacing:2px;line-height:1}
+.an2-auth-clients{color:rgba(255,255,255,.75);font:500 12px Inter,sans-serif;margin-top:4px}
+
+/* Panel derecho: formulario */
+.an2-auth-panel{display:flex;align-items:center;justify-content:center;padding:48px 24px}
+.an2-auth-box{width:100%;max-width:430px}
+.an2-auth-brand-top{color:var(--an2-ink-soft);font-size:19px;margin-bottom:28px}
+.an2-auth-brand-top .an2-green{color:var(--an2-green)}
+.an2-auth-h1{font-family:Poppins,Inter,sans-serif;font-weight:800;font-size:30px;line-height:1.15;letter-spacing:-.02em;color:var(--an2-ink-soft);margin-bottom:6px}
+.an2-auth-sub{color:var(--an2-slate);font:400 13.5px Inter,sans-serif;margin-bottom:24px}
+.an2-auth-google{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;border:1px solid var(--an2-border);border-radius:10px;padding:12px 16px;font:600 13.5px Inter,sans-serif;color:var(--an2-ink-soft);cursor:pointer;transition:background .15s}
+.an2-auth-google:hover{background:#F8FAFC}
+.an2-auth-divider{display:flex;align-items:center;gap:14px;margin:18px 0}
+.an2-auth-divider::before,.an2-auth-divider::after{content:"";height:1px;flex:1;background:var(--an2-border)}
+.an2-auth-divider span{color:#94A3B8;font:500 11px Inter,sans-serif;letter-spacing:.02em;white-space:nowrap}
+.an2-field{margin-bottom:16px}
+.an2-label{display:block;font:700 11.5px Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--an2-ink-soft);margin-bottom:8px}
+.an2-input{width:100%;background:#fff;border:1px solid var(--an2-border);border-radius:10px;padding:12px 14px;font:400 14px Inter,sans-serif;color:var(--an2-ink-soft);outline:0;transition:border-color .15s,box-shadow .15s}
+.an2-input::placeholder{color:#94A3B8}
+.an2-input:focus{border-color:var(--an2-green);box-shadow:0 0 0 3px rgba(5,150,105,.12)}
+.an2-input-wrap{position:relative}
+.an2-input-wrap .an2-input{padding-right:46px}
+.an2-eye{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:0;background:transparent;border-radius:8px;color:#94A3B8;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.an2-eye:hover{color:var(--an2-ink-soft);background:#F1F5F9}
+.an2-eye .i-off{display:none}
+.an2-eye.showing .i-on{display:none}
+.an2-eye.showing .i-off{display:inline}
+.an2-auth-row{display:flex;justify-content:space-between;align-items:center;margin:2px 0 18px}
+.an2-auth-row.start{justify-content:flex-start}
+.an2-check{display:inline-flex;align-items:center;gap:8px;color:var(--an2-slate);font:400 13px Inter,sans-serif;cursor:pointer}
+.an2-check input{width:15px;height:15px;accent-color:var(--an2-green)}
+.an2-auth-link{color:var(--an2-slate);font:500 12.5px Inter,sans-serif;text-decoration:underline}
+.an2-auth-link:hover{color:var(--an2-ink-soft)}
+.an2-auth-submit{width:100%;background:var(--an2-green);color:#fff;border:0;border-radius:9px;padding:13px;font:700 14px Inter,sans-serif;cursor:pointer;transition:background .15s;box-shadow:0 10px 22px -10px rgba(5,150,105,.55)}
+.an2-auth-submit:hover{background:var(--an2-green-dark);color:#fff}
+.an2-cols{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+@media(max-width:575.98px){.an2-cols{grid-template-columns:1fr;gap:0}}
+.an2-auth-demo{margin-top:14px;background:#ECFDF5;border:1px dashed #A7F3D0;border-radius:10px;padding:10px 14px;font:500 11.5px/1.65 Inter,sans-serif;color:#065F46}
+.an2-auth-demo code{background:rgba(6,95,70,.08);border-radius:5px;padding:1px 5px}
+.an2-auth-alt{text-align:center;font:400 13px Inter,sans-serif;color:var(--an2-slate);margin:20px 0 10px}
+.an2-auth-alt a{color:var(--an2-green);font-weight:700}
+.an2-auth-alt a:hover{color:var(--an2-green-dark)}
+.an2-auth-terms{text-align:center;font:400 11px/1.7 Inter,sans-serif;color:#94A3B8;max-width:340px;margin:0 auto}
+.an2-auth-terms a{color:#94A3B8;text-decoration:underline}
+.an2-auth-terms a:hover{color:var(--an2-slate)}
+@media(max-width:991.98px){
+  .an2-auth-grid{grid-template-columns:1fr;min-height:0}
+  .an2-auth-panel{padding:36px 18px 44px}
+}
+
+/* ---------- Mi Cuenta / Mi Perfil (navbar) ---------- */
+.an2-user-link{text-decoration:none}
+.an2-user-link:hover{color:#fff}
+.an2-navbar .nav-link.an4-navcta.active{background:#ECFDF5;color:var(--an2-green);border-radius:8px}

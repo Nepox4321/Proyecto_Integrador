@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Estudio de voz{% endblock %}
+{% block page %}doblaje{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/doblaje.css') }}">{% endblock %}
+
+{% block content %}
+<main class="voice-studio">
+  <section class="studio-heading">
+    <div>
+      <p class="studio-kicker">AUTO NOVA / ESTUDIO 01</p>
+      <h1>Dale voz a<br><em>cada escena.</em></h1>
+      <p class="studio-intro">Carga tu video, reproduce la escena y graba tu doblaje por tomas. Puedes pausar, corregir y volver a entrar cuando quieras.</p>
+    </div>
+    <div class="studio-status"><span class="status-dot"></span><span id="permissionStatus">Micrófono sin activar</span></div>
+  </section>
+
+  <section class="studio-grid">
+    <div class="video-column">
+      <div class="video-stage" id="videoStage">
+        <div class="empty-video" id="emptyVideo">
+          <div class="upload-mark">+</div>
+          <strong>Arrastra tu video aquí</strong>
+          <span>MP4, WebM o MOV · se procesa en tu navegador</span>
+          <label class="upload-button" for="videoFile">Elegir video</label>
+          <input id="videoFile" type="file" accept="video/*" hidden>
+        </div>
+        <video id="video" controls playsinline hidden></video>
+        <div class="video-hint" id="videoHint" hidden>Reproduce la escena y pulsa grabar cuando estés listo</div>
+      </div>
+
+      <div class="transport-bar">
+        <button class="icon-button" id="playButton" type="button" title="Reproducir o pausar video" aria-label="Reproducir o pausar video">▶</button>
+        <span class="timecode" id="currentTime">00:00</span>
+        <input class="scrubber" id="scrubber" type="range" min="0" max="100" value="0" step="0.1" aria-label="Posición del video">
+        <span class="timecode" id="duration">00:00</span>
+        <button class="speed-button" id="speedButton" type="button" title="Cambiar velocidad">1×</button>
+      </div>
+
+      <div class="take-strip">
+        <div class="section-label"><span>TOMAS GRABADAS</span><b id="takeCount">0</b></div>
+        <div id="takeList" class="take-list"><p class="take-empty">Tus tomas aparecerán aquí.</p></div>
+      </div>
+    </div>
+
+    <aside class="recorder-panel">
+      <div class="panel-topline"><span>VOICE OVER</span><span class="rec-dot" id="recordIndicator"></span></div>
+      <div class="record-clock" id="recordClock">00:00.0</div>
+      <p class="record-state" id="recordState">Listo para grabar</p>
+      <div class="level-meter"><span id="levelFill"></span></div>
+      <button class="record-button" id="recordButton" type="button"><span class="record-icon"></span><span id="recordLabel">Grabar toma</span></button>
+      <div class="record-actions">
+        <button class="secondary-button" id="newTakeButton" type="button" disabled>Nueva toma</button>
+        <button class="secondary-button" id="clearTakesButton" type="button" disabled>Limpiar</button>
+      </div>
+      <p class="recorder-note">Usa audífonos para evitar que el audio del video se cuele en la grabación.</p>
+      <div class="export-box">
+        <div><strong>Tu narración</strong><span id="exportSummary">0 tomas · sin audio</span></div>
+        <button class="export-button" id="exportButton" type="button" disabled>Descargar audio</button>
+      </div>
+    </aside>
+  </section>
+</main>
+{% endblock %}
+
+{% block extra_js %}<script src="{{ url_for('static', filename='js/doblaje.js') }}"></script>{% endblock %}

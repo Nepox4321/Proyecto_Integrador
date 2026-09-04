@@ -1,0 +1,1015 @@
+-- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
+--
+-- Host: localhost    Database: autonova
+-- ------------------------------------------------------
+-- Server version	8.0.46
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `comandos_esp32`
+--
+
+DROP TABLE IF EXISTS `comandos_esp32`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `comandos_esp32` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `modulo_id` int unsigned NOT NULL,
+  `comando` enum('ping','reiniciar','encender','apagar','abrir_cajuela') NOT NULL,
+  `estado` enum('pendiente','entregado') NOT NULL DEFAULT 'pendiente',
+  `creado_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  `entregado_en` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `modulo_id` (`modulo_id`),
+  CONSTRAINT `comandos_esp32_ibfk_1` FOREIGN KEY (`modulo_id`) REFERENCES `modulos_esp32` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `comandos_esp32`
+--
+
+LOCK TABLES `comandos_esp32` WRITE;
+/*!40000 ALTER TABLE `comandos_esp32` DISABLE KEYS */;
+INSERT INTO `comandos_esp32` VALUES (1,1,'ping','entregado','2026-09-03 12:52:31','2026-09-03 12:52:31');
+/*!40000 ALTER TABLE `comandos_esp32` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `modulos_esp32`
+--
+
+DROP TABLE IF EXISTS `modulos_esp32`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `modulos_esp32` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `codigo` varchar(60) NOT NULL,
+  `nombre` varchar(60) NOT NULL,
+  `vehiculo_id` int unsigned DEFAULT NULL,
+  `usuario_id` int unsigned DEFAULT NULL,
+  `estado` enum('esperando','conectado','apagado') NOT NULL DEFAULT 'esperando',
+  `endpoint_api` varchar(255) DEFAULT 'http://192.168.1.105:5000/api',
+  `ultimo_heartbeat` datetime DEFAULT NULL,
+  `ip_local` varchar(45) DEFAULT NULL,
+  `firmware` varchar(30) DEFAULT '1.0.0',
+  `creado_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `codigo` (`codigo`),
+  UNIQUE KEY `vehiculo_id` (`vehiculo_id`),
+  KEY `usuario_id` (`usuario_id`),
+  CONSTRAINT `modulos_esp32_ibfk_1` FOREIGN KEY (`vehiculo_id`) REFERENCES `vehiculos` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `modulos_esp32_ibfk_2` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id_usuario`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `modulos_esp32`
+--
+
+LOCK TABLES `modulos_esp32` WRITE;
+/*!40000 ALTER TABLE `modulos_esp32` DISABLE KEYS */;
+INSERT INTO `modulos_esp32` VALUES (1,'ESP32-AUTONOVA-001','Módulo Principal 001',7,NULL,'conectado','http://192.168.1.105:5000/api','2026-09-03 20:10:39','172.20.10.6','1.0.0','2026-08-27 13:22:52');
+/*!40000 ALTER TABLE `modulos_esp32` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `pagos`
+--
+
+DROP TABLE IF EXISTS `pagos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pagos` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `reserva_id` int unsigned NOT NULL,
+  `monto` decimal(10,2) NOT NULL,
+  `metodo` enum('tarjeta','transferencia','oxxo','efectivo') DEFAULT NULL,
+  `estado` enum('pendiente','pagado','rechazado','reembolsado') DEFAULT 'pendiente',
+  `referencia` varchar(120) DEFAULT NULL,
+  `creado_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `reserva_id` (`reserva_id`),
+  CONSTRAINT `pagos_ibfk_1` FOREIGN KEY (`reserva_id`) REFERENCES `reservas` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `pagos`
+--
+
+LOCK TABLES `pagos` WRITE;
+/*!40000 ALTER TABLE `pagos` DISABLE KEYS */;
+INSERT INTO `pagos` VALUES (1,1,840.00,'tarjeta','pagado','TXN-998877','2026-08-27 13:22:52'),(2,2,1250.00,'transferencia','pagado','REF-BANCO-001','2026-08-27 13:22:52'),(3,3,450.00,'tarjeta','pendiente',NULL,'2026-08-27 13:22:52');
+/*!40000 ALTER TABLE `pagos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `reservas`
+--
+
+DROP TABLE IF EXISTS `reservas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `reservas` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `usuario_id` int unsigned NOT NULL,
+  `vehiculo_id` int unsigned NOT NULL,
+  `sucursal_id` int unsigned DEFAULT NULL,
+  `fecha_inicio` date NOT NULL,
+  `fecha_fin` date NOT NULL,
+  `tarifa_dia` decimal(10,2) NOT NULL,
+  `total` decimal(10,2) DEFAULT NULL,
+  `tipo` enum('alquiler','venta') DEFAULT 'alquiler',
+  `estado` enum('pendiente','confirmada','en_uso','completada','cancelada') NOT NULL DEFAULT 'pendiente',
+  `creada_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `usuario_id` (`usuario_id`),
+  KEY `vehiculo_id` (`vehiculo_id`),
+  KEY `sucursal_id` (`sucursal_id`),
+  CONSTRAINT `reservas_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id_usuario`),
+  CONSTRAINT `reservas_ibfk_2` FOREIGN KEY (`vehiculo_id`) REFERENCES `vehiculos` (`id`),
+  CONSTRAINT `reservas_ibfk_3` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `reservas`
+--
+
+LOCK TABLES `reservas` WRITE;
+/*!40000 ALTER TABLE `reservas` DISABLE KEYS */;
+INSERT INTO `reservas` VALUES (1,2,2,2,'2026-08-28','2026-08-30',280.00,840.00,'alquiler','cancelada','2026-08-27 13:22:52'),(2,3,3,3,'2026-09-01','2026-09-05',250.00,1250.00,'alquiler','cancelada','2026-08-27 13:22:52'),(3,2,1,1,'2026-09-10','2026-09-11',450.00,450.00,'alquiler','cancelada','2026-08-27 13:22:52'),(4,5,1,1,'2026-09-22','2026-09-30',450.00,3600.00,'alquiler','cancelada','2026-09-03 19:21:49'),(5,6,1,1,'2026-09-03','2026-09-05',450.00,900.00,'alquiler','cancelada','2026-09-03 19:23:56'),(6,6,7,3,'2026-09-03','2026-09-06',100.00,300.00,'alquiler','completada','2026-09-03 19:38:34'),(7,6,7,3,'2026-09-03','2026-09-06',100.00,300.00,'alquiler','en_uso','2026-09-03 19:58:06');
+/*!40000 ALTER TABLE `reservas` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `semaforo_focos`
+--
+
+DROP TABLE IF EXISTS `semaforo_focos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `semaforo_focos` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `modulo_id` int unsigned NOT NULL,
+  `foco_activo` enum('verde','azul','amarillo','rojo') NOT NULL DEFAULT 'verde',
+  `modo` enum('auto','manual') NOT NULL DEFAULT 'auto',
+  `segundos_restantes` int DEFAULT NULL,
+  `fin` datetime DEFAULT NULL,
+  `actualizado_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `modulo_id` (`modulo_id`),
+  CONSTRAINT `semaforo_focos_ibfk_1` FOREIGN KEY (`modulo_id`) REFERENCES `modulos_esp32` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `semaforo_focos`
+--
+
+LOCK TABLES `semaforo_focos` WRITE;
+/*!40000 ALTER TABLE `semaforo_focos` DISABLE KEYS */;
+INSERT INTO `semaforo_focos` VALUES (1,1,'rojo','manual',NULL,NULL,'2026-09-03 20:01:00');
+/*!40000 ALTER TABLE `semaforo_focos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sucursales`
+--
+
+DROP TABLE IF EXISTS `sucursales`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sucursales` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(120) NOT NULL,
+  `ciudad` varchar(80) NOT NULL,
+  `direccion` varchar(180) DEFAULT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `email` varchar(150) DEFAULT NULL,
+  `lat` decimal(10,7) DEFAULT NULL,
+  `lng` decimal(10,7) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sucursales`
+--
+
+LOCK TABLES `sucursales` WRITE;
+/*!40000 ALTER TABLE `sucursales` DISABLE KEYS */;
+INSERT INTO `sucursales` VALUES (1,'AutoNova Matriz','Quito','Av. Naciones Unidas y Shyris','022334455','matriz@autonova.com',-0.1751000,-78.4792000),(2,'AutoNova Cumbayá','Quito','Av. Interoceánica km 10','022998877','cumbaya@autonova.com',-0.1983000,-78.4357000),(3,'AutoNova Aeropuerto','Tababela','Aeropuerto Mariscal Sucre','022112233','aero@autonova.com',-0.1134000,-78.3586000);
+/*!40000 ALTER TABLE `sucursales` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `telemetria_esp32`
+--
+
+DROP TABLE IF EXISTS `telemetria_esp32`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `telemetria_esp32` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `modulo_id` int unsigned NOT NULL,
+  `lat` decimal(10,7) DEFAULT NULL,
+  `lng` decimal(10,7) DEFAULT NULL,
+  `velocidad` smallint DEFAULT NULL,
+  `bateria` tinyint DEFAULT NULL,
+  `motor` enum('on','off') DEFAULT NULL,
+  `rssi` smallint DEFAULT NULL,
+  `leido_en` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_modulo_tiempo` (`modulo_id`,`leido_en`),
+  CONSTRAINT `telemetria_esp32_ibfk_1` FOREIGN KEY (`modulo_id`) REFERENCES `modulos_esp32` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=75 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `telemetria_esp32`
+--
+
+LOCK TABLES `telemetria_esp32` WRITE;
+/*!40000 ALTER TABLE `telemetria_esp32` DISABLE KEYS */;
+INSERT INTO `telemetria_esp32` VALUES (3,1,-0.1751000,-78.4792000,0,100,'off',-50,'2026-08-27 13:22:52'),(4,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 18:21:40'),(5,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 18:21:56'),(6,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 18:22:11'),(7,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 18:22:27'),(8,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 18:22:42'),(9,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 18:22:58'),(10,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 18:23:13'),(11,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 18:23:29'),(12,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 18:23:44'),(13,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 18:24:00'),(14,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 18:24:15'),(15,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 18:24:31'),(16,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 18:25:02'),(17,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:55:48'),(18,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:56:04'),(19,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:56:20'),(20,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:56:35'),(21,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:56:51'),(22,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:57:06'),(23,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:57:33'),(24,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:57:48'),(25,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:58:04'),(26,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:58:19'),(27,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:58:35'),(28,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:58:50'),(29,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:59:06'),(30,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:59:21'),(31,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:59:37'),(32,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 19:59:52'),(33,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:00:08'),(34,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:00:23'),(35,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:00:39'),(36,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:00:54'),(37,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:01:10'),(38,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:01:25'),(39,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:01:40'),(40,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:01:55'),(41,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:02:11'),(42,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:02:26'),(43,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:02:41'),(44,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:02:57'),(45,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:03:12'),(46,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:03:28'),(47,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:03:45'),(48,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:04:00'),(49,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:04:15'),(50,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:04:31'),(51,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:04:46'),(52,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:05:01'),(53,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:05:17'),(54,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:05:32'),(55,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:05:47'),(56,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:06:02'),(57,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:06:18'),(58,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:06:33'),(59,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:06:48'),(60,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:07:04'),(61,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:07:19'),(62,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:07:34'),(63,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:07:50'),(64,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:08:05'),(65,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:08:20'),(66,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:08:36'),(67,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:08:51'),(68,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:09:07'),(69,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:09:22'),(70,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:09:38'),(71,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:09:53'),(72,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:10:08'),(73,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:10:23'),(74,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:10:39');
+/*!40000 ALTER TABLE `telemetria_esp32` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `usuarios`
+--
+
+DROP TABLE IF EXISTS `usuarios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `usuarios` (
+  `id_usuario` int unsigned NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(120) NOT NULL,
+  `apellidos` varchar(120) DEFAULT NULL,
+  `email` varchar(150) NOT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `licencia` varchar(30) DEFAULT NULL,
+  `rol` enum('cliente','admin','staff') NOT NULL DEFAULT 'cliente',
+  `avatar_url` varchar(255) DEFAULT NULL,
+  `es_activo` tinyint(1) DEFAULT '1',
+  `creado_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  `ultimo_acceso` datetime DEFAULT NULL,
+  PRIMARY KEY (`id_usuario`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `usuarios`
+--
+
+LOCK TABLES `usuarios` WRITE;
+/*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
+INSERT INTO `usuarios` VALUES (1,'Leonardo','Garcia','admin@autonova.com','0991234567','scrypt:32768:8:1$7OxhGYKah7gPK3A5$77f010c200efd6de6d1f1541a6844308cd8b5e6c3dd7dc1f4a4f9c5280cb48ce74316207dc8e5eb7141fc175f080e01790e31b630fb86929231e03bf60ab0cfd','LIC-001','admin',NULL,1,'2026-08-27 13:22:52',NULL),(2,'Ana','Torres','ana.torres@email.com','0987654321','hash_generico_2','LIC-002','cliente',NULL,1,'2026-08-27 13:22:52',NULL),(3,'Carlos','Mendoza','carlos.m@email.com','0971122334','hash_generico_3','LIC-003','cliente',NULL,1,'2026-08-27 13:22:52',NULL),(4,'Admin','AutoNova','admin@autonova.mx',NULL,'scrypt:32768:8:1$pu8U2x3yxf2fzXvQ$6358647cebac980f5c139d64303ebedafb12def785ee37c53c93efcacb927676031f8a2d3f679009b859ffad1109b25a8274b5426f754f6f952d57dae6f50ba9','ADM-001','admin',NULL,1,'2026-09-03 19:17:44','2026-09-03 19:18:40'),(5,'anthony','hidalgo','anthonyhidalgo2244@gmail.com','8213981238','scrypt:32768:8:1$yrrrruwd0pUTyMNS$aa867150f6211e23b917d026b48c96ab75802421b6869feeec9819fbc3cdff7cd25e37f7e1ef2f7ce3cef5637de9dc98d4f7d68b22992254e764443527dab4c9','1239012398','admin',NULL,1,'2026-09-03 19:20:50','2026-09-03 19:24:10'),(6,'Martin','Arias','martinariasgarcia@hotmail.com','0985636801','scrypt:32768:8:1$QczULFZMzl19kIeH$e577724fe20c1cdc771345b0f51e3657d528a4308c1036ea1e74daf03626eceb102ed5f19c844cde3192530359988d9d38e12c88ceddbc26ef48a2a51a6c1701','1722313762','admin',NULL,1,'2026-09-03 19:22:45','2026-09-03 19:25:18');
+/*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `vehiculos`
+--
+
+DROP TABLE IF EXISTS `vehiculos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `vehiculos` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `marca` varchar(60) NOT NULL,
+  `modelo` varchar(120) NOT NULL,
+  `anio` smallint DEFAULT NULL,
+  `placa` varchar(12) NOT NULL,
+  `categoria` enum('sedan','suv','deportivo','elegante','electrico','convertible') NOT NULL DEFAULT 'sedan',
+  `motor` varchar(60) DEFAULT NULL,
+  `transmision` enum('manual','automatica') DEFAULT 'automatica',
+  `combustible` varchar(30) DEFAULT 'Gasolina',
+  `kilometraje` int unsigned DEFAULT '0',
+  `tarifa_dia` decimal(10,2) NOT NULL,
+  `tarifa_mes` decimal(10,2) DEFAULT NULL,
+  `precio_venta` decimal(12,2) DEFAULT NULL,
+  `descripcion` text,
+  `imagen_url` varchar(255) DEFAULT NULL,
+  `estado` enum('disponible','reservada','alquilado','mantenimiento','baja') NOT NULL DEFAULT 'disponible',
+  `sucursal_id` int unsigned DEFAULT NULL,
+  `disponible_desde` date DEFAULT NULL,
+  `veces_alquilado` int unsigned DEFAULT '0',
+  `creado_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `placa` (`placa`),
+  KEY `sucursal_id` (`sucursal_id`),
+  CONSTRAINT `vehiculos_ibfk_1` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `vehiculos`
+--
+
+LOCK TABLES `vehiculos` WRITE;
+/*!40000 ALTER TABLE `vehiculos` DISABLE KEYS */;
+INSERT INTO `vehiculos` VALUES (1,'Porsche','911 Carrera S',2025,'PCC-0911','deportivo','3.0L Twin-Turbo','automatica','Gasolina',0,450.00,NULL,150000.00,NULL,NULL,'disponible',1,NULL,2,'2026-08-27 13:22:52'),(2,'Audi','Q8 S-Line',2026,'PBB-1022','suv','3.0L V6','automatica','Gasolina',0,280.00,NULL,95000.00,NULL,NULL,'disponible',2,NULL,0,'2026-08-27 13:22:52'),(3,'Mercedes-Benz','Clase E 400',2024,'PXX-9900','elegante','3.0L Inline-6','automatica','Gasolina',0,250.00,NULL,85000.00,NULL,NULL,'disponible',3,NULL,0,'2026-08-27 13:22:52'),(4,'Chevrolet','Herby',2026,'FRG-2348','suv',NULL,'automatica','Gasolina',30,700.00,NULL,45000.00,'Carro con ciertos detalles y arreglos necesarios','Herby.jpg','disponible',2,NULL,0,'2026-09-03 19:28:55'),(5,'Dodge','Charger 1969 (Batimóvil)',1980,'BTM-2022','sedan','Chevy V8 Twin-Turbo','manual','Gasolina',0,35000.00,NULL,85000.00,'Para las batinenas, las toxicas y las gatitas','autobatman.jpg','alquilado',2,NULL,0,'2026-09-03 19:30:29'),(7,'Toyota','Hilux CD 4x2',NULL,'PDQ5008','suv','16 vál vulas, DOHC con Dual VVT-i','manual','diesel',10000,100.00,NULL,70000.00,NULL,'azul.jpeg','alquilado',3,NULL,2,'2026-09-03 19:35:34');
+/*!40000 ALTER TABLE `vehiculos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `ventas`
+--
+
+DROP TABLE IF EXISTS `ventas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ventas` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `reserva_id` int unsigned DEFAULT NULL,
+  `vehiculo_id` int unsigned NOT NULL,
+  `usuario_id` int unsigned NOT NULL,
+  `precio_final` decimal(12,2) NOT NULL,
+  `estado` enum('cotizada','pagada','entregada') DEFAULT NULL,
+  `fecha_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `reserva_id` (`reserva_id`),
+  KEY `usuario_id` (`usuario_id`),
+  KEY `vehiculo_id` (`vehiculo_id`),
+  CONSTRAINT `ventas_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id_usuario`),
+  CONSTRAINT `ventas_ibfk_2` FOREIGN KEY (`vehiculo_id`) REFERENCES `vehiculos` (`id`),
+  CONSTRAINT `ventas_ibfk_3` FOREIGN KEY (`reserva_id`) REFERENCES `reservas` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ventas`
+--
+
+LOCK TABLES `ventas` WRITE;
+/*!40000 ALTER TABLE `ventas` DISABLE KEYS */;
+INSERT INTO `ventas` VALUES (1,NULL,3,3,83000.00,'pagada','2026-08-27 13:22:52'),(2,NULL,1,2,148000.00,'cotizada','2026-08-27 13:22:52'),(3,NULL,2,3,90000.00,'entregada','2026-08-27 13:22:52');
+/*!40000 ALTER TABLE `ventas` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping events for database 'autonova'
+--
+
+--
+-- Dumping routines for database 'autonova'
+--
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-09-04  7:38:54
+-- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
+--
+-- Host: localhost    Database: autonova2
+-- ------------------------------------------------------
+-- Server version	8.0.46
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `comandos_esp32`
+--
+
+DROP TABLE IF EXISTS `comandos_esp32`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `comandos_esp32` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `modulo_id` int unsigned NOT NULL,
+  `comando` enum('ping','reiniciar','encender','apagar','abrir_cajuela') NOT NULL,
+  `estado` enum('pendiente','entregado') NOT NULL DEFAULT 'pendiente',
+  `creado_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  `entregado_en` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `modulo_id` (`modulo_id`),
+  CONSTRAINT `comandos_esp32_ibfk_1` FOREIGN KEY (`modulo_id`) REFERENCES `modulos_esp32` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `comandos_esp32`
+--
+
+LOCK TABLES `comandos_esp32` WRITE;
+/*!40000 ALTER TABLE `comandos_esp32` DISABLE KEYS */;
+INSERT INTO `comandos_esp32` VALUES (1,1,'ping','entregado','2026-09-03 12:52:31','2026-09-03 12:52:31');
+/*!40000 ALTER TABLE `comandos_esp32` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `modulos_esp32`
+--
+
+DROP TABLE IF EXISTS `modulos_esp32`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `modulos_esp32` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `codigo` varchar(60) NOT NULL,
+  `nombre` varchar(60) NOT NULL,
+  `vehiculo_id` int unsigned DEFAULT NULL,
+  `usuario_id` int unsigned DEFAULT NULL,
+  `estado` enum('esperando','conectado','apagado') NOT NULL DEFAULT 'esperando',
+  `endpoint_api` varchar(255) DEFAULT 'http://192.168.1.105:5000/api',
+  `ultimo_heartbeat` datetime DEFAULT NULL,
+  `ip_local` varchar(45) DEFAULT NULL,
+  `firmware` varchar(30) DEFAULT '1.0.0',
+  `creado_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `codigo` (`codigo`),
+  UNIQUE KEY `vehiculo_id` (`vehiculo_id`),
+  KEY `usuario_id` (`usuario_id`),
+  CONSTRAINT `modulos_esp32_ibfk_1` FOREIGN KEY (`vehiculo_id`) REFERENCES `vehiculos` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `modulos_esp32_ibfk_2` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id_usuario`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `modulos_esp32`
+--
+
+LOCK TABLES `modulos_esp32` WRITE;
+/*!40000 ALTER TABLE `modulos_esp32` DISABLE KEYS */;
+INSERT INTO `modulos_esp32` VALUES (1,'ESP32-AUTONOVA-001','Módulo Principal 001',5,NULL,'conectado','http://192.168.1.105:5000/api','2026-09-03 22:59:54','172.20.10.6','1.0.0','2026-08-27 13:22:52');
+/*!40000 ALTER TABLE `modulos_esp32` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `pagos`
+--
+
+DROP TABLE IF EXISTS `pagos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pagos` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `reserva_id` int unsigned NOT NULL,
+  `monto` decimal(10,2) NOT NULL,
+  `metodo` enum('tarjeta','transferencia','oxxo','efectivo') DEFAULT NULL,
+  `estado` enum('pendiente','pagado','rechazado','reembolsado') DEFAULT 'pendiente',
+  `referencia` varchar(120) DEFAULT NULL,
+  `creado_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `reserva_id` (`reserva_id`),
+  CONSTRAINT `pagos_ibfk_1` FOREIGN KEY (`reserva_id`) REFERENCES `reservas` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `an2_chk_pagos_monto` CHECK ((`monto` > 0))
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `pagos`
+--
+
+LOCK TABLES `pagos` WRITE;
+/*!40000 ALTER TABLE `pagos` DISABLE KEYS */;
+INSERT INTO `pagos` VALUES (1,1,840.00,'tarjeta','pagado','TXN-998877','2026-08-27 13:22:52'),(2,2,1250.00,'transferencia','pagado','REF-BANCO-001','2026-08-27 13:22:52'),(3,3,450.00,'tarjeta','pendiente',NULL,'2026-08-27 13:22:52');
+/*!40000 ALTER TABLE `pagos` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `an2_pagos_bi` BEFORE INSERT ON `pagos` FOR EACH ROW BEGIN
+    DECLARE v_estado_reserva VARCHAR(20);
+
+    IF NEW.monto IS NULL OR NEW.monto <= 0 THEN
+        SIGNAL SQLSTATE '45000' SET MYSQL_ERRNO = 45002,
+            MESSAGE_TEXT = 'Pago invalido: el monto debe ser mayor a 0 (AN-45002)';
+    END IF;
+
+    SELECT estado INTO v_estado_reserva
+    FROM reservas WHERE id = NEW.reserva_id;
+
+    IF v_estado_reserva = 'cancelada' THEN
+        SIGNAL SQLSTATE '45000' SET MYSQL_ERRNO = 45003,
+            MESSAGE_TEXT = 'Pago invalido: la reserva esta cancelada (AN-45003)';
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `an2_pagos_au` AFTER UPDATE ON `pagos` FOR EACH ROW BEGIN
+    IF NEW.estado = 'pagado' AND OLD.estado <> 'pagado' THEN
+        UPDATE reservas
+        SET estado = 'confirmada'
+        WHERE id = NEW.reserva_id
+          AND estado = 'pendiente';
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
+-- Table structure for table `reservas`
+--
+
+DROP TABLE IF EXISTS `reservas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `reservas` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `usuario_id` int unsigned NOT NULL,
+  `vehiculo_id` int unsigned NOT NULL,
+  `sucursal_id` int unsigned DEFAULT NULL,
+  `fecha_inicio` date NOT NULL,
+  `fecha_fin` date NOT NULL,
+  `tarifa_dia` decimal(10,2) NOT NULL,
+  `total` decimal(10,2) DEFAULT NULL,
+  `tipo` enum('alquiler','venta') DEFAULT 'alquiler',
+  `estado` enum('pendiente','confirmada','en_uso','completada','cancelada') NOT NULL DEFAULT 'pendiente',
+  `creada_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `usuario_id` (`usuario_id`),
+  KEY `vehiculo_id` (`vehiculo_id`),
+  KEY `sucursal_id` (`sucursal_id`),
+  CONSTRAINT `reservas_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id_usuario`),
+  CONSTRAINT `reservas_ibfk_2` FOREIGN KEY (`vehiculo_id`) REFERENCES `vehiculos` (`id`),
+  CONSTRAINT `reservas_ibfk_3` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`),
+  CONSTRAINT `an2_chk_reservas_fechas` CHECK ((`fecha_fin` >= `fecha_inicio`)),
+  CONSTRAINT `an2_chk_reservas_tarifa` CHECK ((`tarifa_dia` >= 0)),
+  CONSTRAINT `an2_chk_reservas_total` CHECK (((`total` is null) or (`total` >= 0)))
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `reservas`
+--
+
+LOCK TABLES `reservas` WRITE;
+/*!40000 ALTER TABLE `reservas` DISABLE KEYS */;
+INSERT INTO `reservas` VALUES (1,2,2,2,'2026-08-28','2026-08-30',280.00,840.00,'alquiler','cancelada','2026-08-27 13:22:52'),(2,3,3,3,'2026-09-01','2026-09-05',250.00,1250.00,'alquiler','cancelada','2026-08-27 13:22:52'),(3,2,1,1,'2026-09-10','2026-09-11',450.00,450.00,'alquiler','cancelada','2026-08-27 13:22:52'),(4,5,1,1,'2026-09-04','2026-09-07',450.00,1350.00,'alquiler','cancelada','2026-09-03 20:21:03'),(5,5,1,1,'2026-09-03','2026-09-04',450.00,450.00,'alquiler','cancelada','2026-09-03 20:23:07'),(6,4,4,3,'2026-09-03','2026-09-15',400.00,4800.00,'alquiler','cancelada','2026-09-03 20:23:39'),(7,5,1,1,'2026-09-04','2026-09-04',450.00,450.00,'alquiler','completada','2026-09-03 20:24:37'),(8,5,1,1,'2026-09-03','2026-09-05',450.00,900.00,'alquiler','cancelada','2026-09-03 20:25:58'),(9,5,1,1,'2026-09-03','2026-09-05',450.00,900.00,'alquiler','completada','2026-09-03 20:27:44'),(10,4,6,3,'2026-09-04','2026-09-05',500.00,500.00,'alquiler','completada','2026-09-03 20:48:29'),(13,6,6,3,'2026-09-04','2026-09-09',500.00,2500.00,'alquiler','pendiente','2026-09-03 21:53:50'),(14,4,5,1,'2026-09-10','2026-09-24',5000.00,70000.00,'alquiler','completada','2026-09-03 22:27:01');
+/*!40000 ALTER TABLE `reservas` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `an2_reservas_bi` BEFORE INSERT ON `reservas` FOR EACH ROW BEGIN
+    IF NEW.fecha_fin < NEW.fecha_inicio THEN
+        SIGNAL SQLSTATE '45000' SET MYSQL_ERRNO = 45001,
+            MESSAGE_TEXT = 'Reserva invalida: fecha_fin anterior a fecha_inicio (AN-45001)';
+    END IF;
+    IF NEW.tipo IS NULL THEN
+        SET NEW.tipo = 'alquiler';
+    END IF;
+    IF NEW.total IS NULL THEN
+        SET NEW.total = GREATEST(DATEDIFF(NEW.fecha_fin, NEW.fecha_inicio), 1)
+                        * NEW.tarifa_dia;
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `an2_reservas_bu` BEFORE UPDATE ON `reservas` FOR EACH ROW BEGIN
+    IF NEW.fecha_fin < NEW.fecha_inicio THEN
+        SIGNAL SQLSTATE '45000' SET MYSQL_ERRNO = 45001,
+            MESSAGE_TEXT = 'Reserva invalida: fecha_fin anterior a fecha_inicio (AN-45001)';
+    END IF;
+    IF NEW.total IS NULL THEN
+        SET NEW.total = GREATEST(DATEDIFF(NEW.fecha_fin, NEW.fecha_inicio), 1)
+                        * NEW.tarifa_dia;
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `an2_reservas_au` AFTER UPDATE ON `reservas` FOR EACH ROW BEGIN
+    IF OLD.estado <> NEW.estado THEN
+        UPDATE vehiculos v
+        SET v.estado = CASE NEW.estado
+                           WHEN 'pendiente'   THEN 'reservada'
+                           WHEN 'confirmada'  THEN 'alquilado'
+                           WHEN 'en_uso'      THEN 'alquilado'
+                           ELSE 'disponible'
+                       END
+        WHERE v.id = NEW.vehiculo_id
+          AND v.estado <> 'baja';
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
+-- Table structure for table `semaforo_focos`
+--
+
+DROP TABLE IF EXISTS `semaforo_focos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `semaforo_focos` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `modulo_id` int unsigned NOT NULL,
+  `foco_activo` enum('verde','azul','amarillo','rojo') NOT NULL DEFAULT 'verde',
+  `modo` enum('auto','manual') NOT NULL DEFAULT 'auto',
+  `segundos_restantes` int DEFAULT NULL,
+  `fin` datetime DEFAULT NULL,
+  `actualizado_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `modulo_id` (`modulo_id`),
+  CONSTRAINT `semaforo_focos_ibfk_1` FOREIGN KEY (`modulo_id`) REFERENCES `modulos_esp32` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `an2_chk_semaforo_seg` CHECK (((`segundos_restantes` is null) or (`segundos_restantes` >= 0)))
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `semaforo_focos`
+--
+
+LOCK TABLES `semaforo_focos` WRITE;
+/*!40000 ALTER TABLE `semaforo_focos` DISABLE KEYS */;
+INSERT INTO `semaforo_focos` VALUES (1,1,'amarillo','auto',1837724,'2026-09-25 00:00:00','2026-09-03 22:31:15');
+/*!40000 ALTER TABLE `semaforo_focos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sucursales`
+--
+
+DROP TABLE IF EXISTS `sucursales`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sucursales` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(120) NOT NULL,
+  `ciudad` varchar(80) NOT NULL,
+  `direccion` varchar(180) DEFAULT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `email` varchar(150) DEFAULT NULL,
+  `lat` decimal(10,7) DEFAULT NULL,
+  `lng` decimal(10,7) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sucursales`
+--
+
+LOCK TABLES `sucursales` WRITE;
+/*!40000 ALTER TABLE `sucursales` DISABLE KEYS */;
+INSERT INTO `sucursales` VALUES (1,'AutoNova Matriz','Quito','Av. Naciones Unidas y Shyris','022334455','matriz@autonova.com',-0.1751000,-78.4792000),(2,'AutoNova Cumbayá','Quito','Av. Interoceánica km 10','022998877','cumbaya@autonova.com',-0.1983000,-78.4357000),(3,'AutoNova Aeropuerto','Tababela','Aeropuerto Mariscal Sucre','022112233','aero@autonova.com',-0.1134000,-78.3586000);
+/*!40000 ALTER TABLE `sucursales` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `telemetria_esp32`
+--
+
+DROP TABLE IF EXISTS `telemetria_esp32`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `telemetria_esp32` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `modulo_id` int unsigned NOT NULL,
+  `lat` decimal(10,7) DEFAULT NULL,
+  `lng` decimal(10,7) DEFAULT NULL,
+  `velocidad` smallint DEFAULT NULL,
+  `bateria` tinyint DEFAULT NULL,
+  `motor` enum('on','off') DEFAULT NULL,
+  `rssi` smallint DEFAULT NULL,
+  `leido_en` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_modulo_tiempo` (`modulo_id`,`leido_en`),
+  CONSTRAINT `telemetria_esp32_ibfk_1` FOREIGN KEY (`modulo_id`) REFERENCES `modulos_esp32` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `an2_chk_tel_bateria` CHECK (((`bateria` is null) or (`bateria` between 0 and 100))),
+  CONSTRAINT `an2_chk_tel_lat` CHECK (((`lat` is null) or (`lat` between -(90) and 90))),
+  CONSTRAINT `an2_chk_tel_lng` CHECK (((`lng` is null) or (`lng` between -(180) and 180))),
+  CONSTRAINT `an2_chk_tel_velocidad` CHECK (((`velocidad` is null) or (`velocidad` >= 0)))
+) ENGINE=InnoDB AUTO_INCREMENT=254 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `telemetria_esp32`
+--
+
+LOCK TABLES `telemetria_esp32` WRITE;
+/*!40000 ALTER TABLE `telemetria_esp32` DISABLE KEYS */;
+INSERT INTO `telemetria_esp32` VALUES (3,1,-0.1751000,-78.4792000,0,100,'off',-50,'2026-08-27 13:22:52'),(4,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:11:25'),(5,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:11:40'),(6,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:11:56'),(7,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:12:11'),(8,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:12:26'),(9,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:12:42'),(10,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:12:57'),(11,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:13:13'),(12,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:13:28'),(13,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:13:43'),(14,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:13:59'),(15,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:14:14'),(16,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:14:29'),(17,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:14:44'),(18,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:15:00'),(19,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:15:15'),(20,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:15:30'),(21,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:15:45'),(22,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:16:02'),(23,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:16:17'),(24,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:16:32'),(25,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:16:48'),(26,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:17:03'),(27,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:17:18'),(28,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:17:34'),(29,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:17:49'),(30,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:18:04'),(31,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:18:20'),(32,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:18:35'),(33,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:18:51'),(34,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:19:06'),(35,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:19:21'),(36,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:19:37'),(37,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:19:52'),(38,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:20:07'),(39,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:20:22'),(40,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:20:38'),(41,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:20:53'),(42,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:21:08'),(43,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:21:24'),(44,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:21:39'),(45,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:21:54'),(46,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:22:10'),(47,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:22:25'),(48,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:22:40'),(49,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:22:56'),(50,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:23:11'),(51,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:23:26'),(52,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:23:42'),(53,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:23:57'),(54,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:24:12'),(55,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:24:28'),(56,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:24:43'),(57,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:24:58'),(58,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:25:14'),(59,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:25:29'),(60,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:25:44'),(61,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:26:00'),(62,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:26:15'),(63,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:26:30'),(64,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:26:46'),(65,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:27:01'),(66,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:27:16'),(67,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:27:32'),(68,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:27:47'),(69,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:28:02'),(70,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:28:18'),(71,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:28:33'),(72,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:28:48'),(73,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:29:03'),(74,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:29:19'),(75,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:29:34'),(76,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:29:49'),(77,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:30:05'),(78,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:30:20'),(79,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:30:35'),(80,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:30:51'),(81,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:31:07'),(82,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:31:22'),(83,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:31:38'),(84,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:31:53'),(85,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:32:08'),(86,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:32:23'),(87,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:32:39'),(88,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:32:54'),(89,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:33:10'),(90,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:33:25'),(91,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:33:40'),(92,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:33:56'),(93,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:34:11'),(94,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:34:26'),(95,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:34:42'),(96,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:34:57'),(97,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:35:12'),(98,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:35:28'),(99,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:35:43'),(100,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:35:58'),(101,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:36:14'),(102,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:36:29'),(103,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:36:44'),(104,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:37:00'),(105,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:37:15'),(106,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:37:30'),(107,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:37:46'),(108,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:38:01'),(109,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:38:16'),(110,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:38:32'),(111,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:38:47'),(112,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:39:02'),(113,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:39:17'),(114,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:39:33'),(115,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:39:48'),(116,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:40:04'),(117,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:40:19'),(118,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:40:34'),(119,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:40:50'),(120,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:41:05'),(121,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:41:20'),(122,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:41:35'),(123,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:41:51'),(124,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:42:06'),(125,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:42:21'),(126,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:42:37'),(127,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:42:52'),(128,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:43:08'),(129,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:43:23'),(130,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:43:38'),(131,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:43:54'),(132,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:44:09'),(133,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:44:24'),(134,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:44:39'),(135,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:44:55'),(136,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:45:13'),(137,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:45:28'),(138,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:45:43'),(139,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:45:59'),(140,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:46:14'),(141,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:46:29'),(142,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:46:45'),(143,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:47:00'),(144,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:47:15'),(145,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:47:31'),(146,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:47:46'),(147,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:48:01'),(148,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:48:17'),(149,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:48:32'),(150,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:48:48'),(151,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:49:03'),(152,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:49:18'),(153,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:49:34'),(154,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:49:50'),(155,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:50:05'),(156,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:50:20'),(157,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:50:35'),(158,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:50:51'),(159,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:51:06'),(160,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:51:21'),(161,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:51:37'),(162,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:51:52'),(163,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:52:08'),(164,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:52:23'),(165,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:52:38'),(166,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:52:54'),(167,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:53:09'),(168,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:53:24'),(169,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:53:39'),(170,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:53:55'),(171,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:54:10'),(172,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:54:25'),(173,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:54:41'),(174,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:54:56'),(175,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:55:11'),(176,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:55:26'),(177,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:55:42'),(178,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:55:57'),(179,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:56:12'),(180,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:56:27'),(181,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:56:43'),(182,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:56:58'),(183,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:57:13'),(184,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:57:28'),(185,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:57:44'),(186,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:57:59'),(187,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:58:14'),(188,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:58:30'),(189,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:58:45'),(190,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:59:00'),(191,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:59:15'),(192,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:59:31'),(193,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 20:59:46'),(194,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:00:02'),(195,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:00:17'),(196,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:00:32'),(197,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:00:48'),(198,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:01:03'),(199,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:01:18'),(200,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:01:34'),(201,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:01:49'),(202,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:02:04'),(203,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:02:20'),(204,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:02:35'),(205,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:02:51'),(206,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:03:06'),(207,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:03:21'),(208,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:03:36'),(209,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:03:52'),(210,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:04:07'),(211,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:04:22'),(212,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:04:38'),(213,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:04:53'),(214,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:05:08'),(215,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:05:24'),(216,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:05:39'),(217,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:05:54'),(218,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:06:10'),(219,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:06:25'),(220,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:06:40'),(221,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:06:55'),(222,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 21:10:44'),(223,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:25:23'),(224,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:25:41'),(225,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:25:58'),(226,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:26:14'),(227,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:26:31'),(228,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:26:47'),(229,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:27:03'),(230,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:27:20'),(231,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:27:37'),(232,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:27:54'),(233,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:28:10'),(234,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:28:26'),(235,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:29:00'),(236,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:29:17'),(237,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:29:35'),(238,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:29:50'),(239,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:30:06'),(240,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:30:23'),(241,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:30:40'),(242,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:30:57'),(243,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:31:14'),(244,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:31:37'),(245,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:57:39'),(246,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:57:56'),(247,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:58:12'),(248,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:58:28'),(249,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:58:45'),(250,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:59:04'),(251,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:59:22'),(252,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:59:39'),(253,1,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-03 22:59:54');
+/*!40000 ALTER TABLE `telemetria_esp32` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `usuarios`
+--
+
+DROP TABLE IF EXISTS `usuarios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `usuarios` (
+  `id_usuario` int unsigned NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(120) NOT NULL,
+  `apellidos` varchar(120) DEFAULT NULL,
+  `email` varchar(150) NOT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `licencia` varchar(30) DEFAULT NULL,
+  `rol` enum('cliente','admin','staff') NOT NULL DEFAULT 'cliente',
+  `avatar_url` varchar(255) DEFAULT NULL,
+  `es_activo` tinyint(1) DEFAULT '1',
+  `creado_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  `ultimo_acceso` datetime DEFAULT NULL,
+  PRIMARY KEY (`id_usuario`),
+  UNIQUE KEY `email` (`email`),
+  CONSTRAINT `an2_chk_usuarios_activo` CHECK (((`es_activo` is null) or (`es_activo` in (0,1))))
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `usuarios`
+--
+
+LOCK TABLES `usuarios` WRITE;
+/*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
+INSERT INTO `usuarios` VALUES (1,'Leonardo','Garcia','admin@autonova.com','0991234567','scrypt:32768:8:1$4ph3jcGLjAV4NEva$29899ae20378caac9f1b62aca96224d7eaad0f87296c72ffc83a4f49d645d6f13ca9168e099f8c937974cc89e866826bad160bf3b24556f13b0018df746fb03a','LIC-001','admin',NULL,1,'2026-08-27 13:22:52',NULL),(2,'Ana','Torres','ana.torres@email.com','0987654321','hash_generico_2','LIC-002','cliente',NULL,1,'2026-08-27 13:22:52',NULL),(3,'Carlos','Mendoza','carlos.m@email.com','0971122334','hash_generico_3','LIC-003','cliente',NULL,1,'2026-08-27 13:22:52',NULL),(4,'Admin','AutoNova','admin@autonova.mx','8213981238','scrypt:32768:8:1$tWAqMTZePFbhz1iM$4fed09364d1c345941e54ac84f2a779f96b170fc8c9b197eabf91a295118d3b3f095a24000d116216db4a91eb7e19f0e72e79421bb6d87b62c8055a4b49cc6f7','ADM-001','admin',NULL,1,'2026-09-03 20:11:18','2026-09-03 22:58:57'),(5,'Martin','Arias','martinariasgarcia@hotmail.com','0985636801','scrypt:32768:8:1$vAfjBRxFEAucH7oF$7d62acac219e90cdf1850e41ef88c37a79ab9d1591f0a5e6e2288aa04d6a4da44b57febc7140ff0044a98163ceb5a4b859b68d96ca16c448ee387b028bd94318','1722313762','cliente',NULL,1,'2026-09-03 20:13:42',NULL),(6,'TU','Papi','ngarcia00678@gmail.com','0996409900','scrypt:32768:8:1$1dDTeIt5qOkrQpUZ$cfa86230ad5866cf7f2656ab4e11e765ab30cbb0a957ef96d980e88e6160c2d056651e4e8e338a4476c044dac1b2359cd1f5f534f4e671888f368ce9634f38d8','B','admin',NULL,1,'2026-09-03 21:39:28','2026-09-03 21:52:49');
+/*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `vehiculos`
+--
+
+DROP TABLE IF EXISTS `vehiculos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `vehiculos` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `marca` varchar(60) NOT NULL,
+  `modelo` varchar(120) NOT NULL,
+  `anio` smallint DEFAULT NULL,
+  `placa` varchar(12) NOT NULL,
+  `categoria` enum('sedan','suv','deportivo','elegante','electrico','convertible') NOT NULL DEFAULT 'sedan',
+  `motor` varchar(60) DEFAULT NULL,
+  `transmision` enum('manual','automatica') DEFAULT 'automatica',
+  `combustible` varchar(30) DEFAULT 'Gasolina',
+  `kilometraje` int unsigned DEFAULT '0',
+  `tarifa_dia` decimal(10,2) NOT NULL,
+  `tarifa_mes` decimal(10,2) DEFAULT NULL,
+  `precio_venta` decimal(12,2) DEFAULT NULL,
+  `descripcion` text,
+  `imagen_url` varchar(255) DEFAULT NULL,
+  `estado` enum('disponible','reservada','alquilado','mantenimiento','baja') NOT NULL DEFAULT 'disponible',
+  `sucursal_id` int unsigned DEFAULT NULL,
+  `disponible_desde` date DEFAULT NULL,
+  `veces_alquilado` int unsigned DEFAULT '0',
+  `creado_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `placa` (`placa`),
+  KEY `sucursal_id` (`sucursal_id`),
+  CONSTRAINT `vehiculos_ibfk_1` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `an2_chk_vehiculos_anio` CHECK (((`anio` is null) or (`anio` between 1950 and 2100))),
+  CONSTRAINT `an2_chk_vehiculos_precio_venta` CHECK (((`precio_venta` is null) or (`precio_venta` >= 0))),
+  CONSTRAINT `an2_chk_vehiculos_tarifa` CHECK ((`tarifa_dia` >= 0)),
+  CONSTRAINT `an2_chk_vehiculos_tarifa_mes` CHECK (((`tarifa_mes` is null) or (`tarifa_mes` >= 0)))
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `vehiculos`
+--
+
+LOCK TABLES `vehiculos` WRITE;
+/*!40000 ALTER TABLE `vehiculos` DISABLE KEYS */;
+INSERT INTO `vehiculos` VALUES (1,'Porsche','911 Carrera S',2025,'PCC-0911','deportivo','3.0L Twin-Turbo','automatica','Gasolina',0,450.00,NULL,150000.00,NULL,NULL,'disponible',1,NULL,5,'2026-08-27 13:22:52'),(2,'Audi','Q8 S-Line',2026,'PBB-1022','suv','3.0L V6','automatica','Gasolina',0,280.00,NULL,95000.00,NULL,NULL,'alquilado',2,NULL,0,'2026-08-27 13:22:52'),(3,'Mercedes-Benz','Clase E 400',2024,'PXX-9900','elegante','3.0L Inline-6','automatica','Gasolina',0,250.00,NULL,85000.00,NULL,NULL,'disponible',3,NULL,0,'2026-08-27 13:22:52'),(4,'Chevrolet','Herby',2025,'FRG-2348','deportivo','40 L','automatica','Diesel',26,400.00,NULL,90000.00,'Coche de carrera y de lujo','Herby.jpg','disponible',3,NULL,1,'2026-09-03 20:22:32'),(5,'Wayne Enterprises','Dodge Charger',2022,'VNG-2022','deportivo','V8 Twin-Turbo','manual','Gas',120,5000.00,NULL,2500000.00,'Para las batinenas,las toxicas y las gatitas.','autobatman.jpg','disponible',1,NULL,1,'2026-09-03 20:39:41'),(6,'Toyota','Limbus',1993,'TGT-8299','suv','40 L S40','automatica','Diesel',16,500.00,NULL,50000.00,'carro todo terreno','azul.jpeg','reservada',3,NULL,2,'2026-09-03 20:47:19');
+/*!40000 ALTER TABLE `vehiculos` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `an2_vehiculos_bi` BEFORE INSERT ON `vehiculos` FOR EACH ROW BEGIN
+    IF NEW.tarifa_dia < 0 THEN
+        SIGNAL SQLSTATE '45000' SET MYSQL_ERRNO = 45006,
+            MESSAGE_TEXT = 'Vehiculo invalido: tarifa_dia negativa (AN-45006)';
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `an2_vehiculos_bu` BEFORE UPDATE ON `vehiculos` FOR EACH ROW BEGIN
+    IF NEW.tarifa_dia < 0 THEN
+        SIGNAL SQLSTATE '45000' SET MYSQL_ERRNO = 45006,
+            MESSAGE_TEXT = 'Vehiculo invalido: tarifa_dia negativa (AN-45006)';
+    END IF;
+    IF NEW.kilometraje < OLD.kilometraje THEN
+        SIGNAL SQLSTATE '45000' SET MYSQL_ERRNO = 45005,
+            MESSAGE_TEXT = 'Vehiculo invalido: el kilometraje no puede retroceder (AN-45005)';
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
+-- Table structure for table `ventas`
+--
+
+DROP TABLE IF EXISTS `ventas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ventas` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `reserva_id` int unsigned DEFAULT NULL,
+  `vehiculo_id` int unsigned NOT NULL,
+  `usuario_id` int unsigned NOT NULL,
+  `precio_final` decimal(12,2) NOT NULL,
+  `estado` enum('cotizada','pagada','entregada') DEFAULT NULL,
+  `fecha_en` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `reserva_id` (`reserva_id`),
+  KEY `usuario_id` (`usuario_id`),
+  KEY `vehiculo_id` (`vehiculo_id`),
+  CONSTRAINT `ventas_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id_usuario`),
+  CONSTRAINT `ventas_ibfk_2` FOREIGN KEY (`vehiculo_id`) REFERENCES `vehiculos` (`id`),
+  CONSTRAINT `ventas_ibfk_3` FOREIGN KEY (`reserva_id`) REFERENCES `reservas` (`id`),
+  CONSTRAINT `an2_chk_ventas_precio` CHECK ((`precio_final` > 0))
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ventas`
+--
+
+LOCK TABLES `ventas` WRITE;
+/*!40000 ALTER TABLE `ventas` DISABLE KEYS */;
+INSERT INTO `ventas` VALUES (1,NULL,3,3,83000.00,'pagada','2026-08-27 13:22:52'),(2,NULL,1,2,148000.00,'cotizada','2026-08-27 13:22:52'),(3,NULL,2,3,90000.00,'entregada','2026-08-27 13:22:52');
+/*!40000 ALTER TABLE `ventas` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `an2_ventas_bi` BEFORE INSERT ON `ventas` FOR EACH ROW BEGIN
+    IF NEW.precio_final IS NULL OR NEW.precio_final <= 0 THEN
+        SIGNAL SQLSTATE '45000' SET MYSQL_ERRNO = 45004,
+            MESSAGE_TEXT = 'Venta invalida: precio_final debe ser mayor a 0 (AN-45004)';
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `an2_ventas_ai` AFTER INSERT ON `ventas` FOR EACH ROW BEGIN
+    IF NEW.estado IN ('pagada', 'entregada') THEN
+        UPDATE vehiculos
+        SET estado = 'baja'
+        WHERE id = NEW.vehiculo_id;
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `an2_ventas_au` AFTER UPDATE ON `ventas` FOR EACH ROW BEGIN
+    IF OLD.estado <> NEW.estado AND NEW.estado IN ('pagada', 'entregada') THEN
+        UPDATE vehiculos
+        SET estado = 'baja'
+        WHERE id = NEW.vehiculo_id;
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
+-- Dumping events for database 'autonova2'
+--
+
+--
+-- Dumping routines for database 'autonova2'
+--
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-09-04  7:38:54

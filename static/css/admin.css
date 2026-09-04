@@ -1,0 +1,206 @@
+/* ============================================================
+   AutoNova · Panel de Administrador
+   (KPIs, tabla de flota, monitoreo ESP32)
+   ============================================================ */
+
+.admin-shell {
+  min-height: 100vh;
+  background: var(--an-cream);
+}
+
+.admin-shell > main {
+  min-width: 0;
+}
+
+/* Sidebar oscuro de administración */
+.admin-sidebar {
+  background: var(--an-carbono);
+  color: rgba(255,255,255,.7);
+  width: 240px;
+  flex-shrink: 0;
+}
+.admin-sidebar .admin-brand {
+  font-family: var(--font-head); font-weight: 800; font-size: 1.1rem; color: #fff;
+}
+.admin-sidebar .nav-link {
+  color: rgba(255,255,255,.7);
+  border-radius: 8px;
+  padding: .6rem .9rem;
+  font-weight: 500;
+  font-size: .875rem;
+}
+.admin-sidebar .nav-link:hover { color: #fff; background: rgba(255,255,255,.08); }
+.admin-sidebar .nav-link.active { color: #fff; background: var(--an-emerald); }
+
+/* Tarjetas KPI */
+.kpi-card {
+  background: #fff;
+  border: 1px solid var(--an-line);
+  border-radius: 16px;
+  padding: 1.25rem 1.375rem;
+  box-shadow: 0 2px 12px rgba(30,41,59,.05);
+}
+.kpi-label { font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--an-slate-400); }
+.kpi-value { font-family: var(--font-head); font-weight: 800; font-size: 1.75rem; color: var(--an-carbono); }
+.kpi-trend { font-size: .8rem; font-weight: 600; }
+.kpi-trend.up { color: var(--an-emerald); }
+.kpi-trend.down { color: var(--an-red); }
+
+/* Tabla de flota */
+.an-table-card {
+  background: #fff;
+  border: 1px solid var(--an-line);
+  border-radius: 18px;
+  box-shadow: 0 2px 14px rgba(30,41,59,.05);
+}
+.an-table-card .table { margin: 0; }
+.an-table-card thead th {
+  font-size: .7rem; font-weight: 700; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--an-slate-400);
+  border-bottom: 1px solid var(--an-line);
+  background: #fff;
+  padding: .9rem 1.25rem;
+}
+.an-table-card tbody td { padding: .9rem 1.25rem; vertical-align: middle; border-color: #F1F5F9; }
+.an-thumb {
+  width: 62px; height: 40px; object-fit: cover; border-radius: 8px;
+  background: #EDECEA;
+}
+.an-plate {
+  font-family: 'Courier New', monospace;
+  font-size: .75rem; letter-spacing: .06em; color: var(--an-slate-700);
+}
+
+.t-elapsed {           /* cronómetro ESP32 */
+  font-family: 'Courier New', monospace;
+  font-size: .875rem; color: var(--an-slate-700);
+}
+
+/* Equalizer (latencia ESP32) */
+.eq-bar {
+  display: inline-block; width: 3px; border-radius: 2px;
+  background: var(--an-slate-400);
+  animation: eq 1s ease-in-out infinite;
+}
+.eq-bar.live { background: var(--an-emerald); }
+@keyframes eq {
+  0%,100% { height: 6px; }
+  50%     { height: 16px; }
+}
+
+/* Detalle de tarjeta ESP32 */
+.esp-card {
+  background: #fff;
+  border: 1px solid var(--an-line);
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(30,41,59,.04);
+}
+.esp-card .esp-id {
+  font-family: 'Courier New', monospace; font-size: .625rem;
+  letter-spacing: .06em; color: var(--an-slate-400);
+}
+.status-pill {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-size: .75rem; font-weight: 600;
+  padding: .3rem .8rem; border-radius: 20px;
+}
+.status-pill .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.status-pill.ok   { background: var(--an-soft-emerald); color: var(--an-emerald); border: 1px solid #D1FAE5; }
+.status-pill.ok .dot   { background: var(--an-emerald); }
+.status-pill.warn { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+.status-pill.warn .dot { background: var(--an-amber); }
+.status-pill.off  { background: #FEE2E2; color: #B91C1C; border: 1px solid #FECACA; }
+.status-pill.off .dot  { background: var(--an-red); }
+
+/* Semáforo del módulo ESP32 (verde/azul/amarillo/rojo) */
+.sem-row {
+  display: inline-flex; align-items: center; gap: .45rem;
+  background: #F8FAFC; border: 1px solid var(--an-line);
+  border-radius: 20px; padding: .3rem .8rem; margin-top: .6rem;
+}
+.sem-dot { width: 10px; height: 10px; border-radius: 50%; background: #CBD5E1; flex: 0 0 auto; }
+.sem-label {
+  font-size: .75rem; font-weight: 600; color: var(--an-slate-700);
+  font-family: 'Courier New', monospace; letter-spacing: .01em;
+}
+
+.field-box {
+  background: var(--an-cream);
+  border: 1px solid #F1F5F9;
+  border-radius: 10px;
+  padding: .7rem .85rem;
+}
+
+/* En pantallas pequeñas el menu deja de ocupar toda la primera pantalla. */
+@media (max-width: 991.98px) {
+  .admin-sidebar {
+    width: 100%;
+    height: auto !important;
+    min-height: 0;
+    position: relative !important;
+    top: auto !important;
+    padding: .8rem 1rem !important;
+  }
+
+  .admin-sidebar .admin-brand {
+    margin-bottom: .65rem !important;
+  }
+
+  .admin-sidebar nav {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .35rem .5rem !important;
+  }
+
+  .admin-sidebar .nav-link {
+    min-width: 0;
+    padding: .5rem .65rem;
+    font-size: .8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .admin-sidebar hr {
+    margin: .65rem 0 !important;
+  }
+
+  .admin-sidebar > .small,
+  .admin-sidebar > a:last-child {
+    padding-left: .65rem !important;
+    padding-right: .65rem !important;
+  }
+
+  .admin-shell > main {
+    width: 100%;
+    padding: 1rem !important;
+  }
+
+  .kpi-card {
+    padding: 1rem;
+  }
+
+  .an-table-card,
+  .esp-card {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .admin-sidebar nav {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar .nav-link {
+    white-space: normal;
+  }
+
+  .kpi-value {
+    font-size: 1.45rem;
+  }
+
+  .an-table-card > .d-flex {
+    align-items: flex-start !important;
+    flex-direction: column;
+  }
+}
