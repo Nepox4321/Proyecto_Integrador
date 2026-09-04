@@ -22,7 +22,7 @@ con el servidor.
 4. [Guía de instalación y ejecución](#guía-de-instalación-y-ejecución)
 5. [Endpoints y rutas](#endpoints-y-rutas)
 6. [Modelo de datos](#modelo-de-datos)
-7. [Manuales](#manuales)
+7. [Manuales y presentación](#manuales-y-presentación)
 8. [Guía de archivos](#guía-de-archivos)
 9. [Paleta de diseño](#paleta-de-diseño)
 10. [Credenciales de acceso](#credenciales-de-acceso)
@@ -63,7 +63,8 @@ Proyecto integrador/
 ├── docs/
 │   ├── ANALISIS_BASE_DE_DATOS.md # Análisis del esquema SQL relacional
 │   ├── MANUAL_USUARIO.md         # Operación de la plataforma
-│   └── MANUAL_PROGRAMADOR.md     # Instalación, arquitectura y POO
+│   ├── MANUAL_PROGRAMADOR.md     # Instalación, arquitectura y POO
+│   └── PRESENTACION_AUTONOVA.md  # Guion para exponer en pareja
 ├── firmware/
 │   └── esp32_autonova/
 │       └── esp32_autonova.ino    # Firmware ESP32 (máquina de estados + IoT)
@@ -352,12 +353,14 @@ El requisito 3.3 también cuenta con enums Python reutilizables:
 Sus valores coinciden con los `db.Enum` persistidos en MySQL, por lo que la
 lógica de dominio tiene valores centralizados sin modificar el esquema.
 
-## Manuales
+## Manuales y presentación
 
 - [Manual de usuario](docs/MANUAL_USUARIO.md): acceso, reservas, perfil y
   panel administrativo.
 - [Manual de programador](docs/MANUAL_PROGRAMADOR.md): instalación,
   arquitectura, API ESP32, base de datos y requisitos de POO.
+- [Guion de presentación](docs/PRESENTACION_AUTONOVA.md): exposición dividida
+  entre dos personas, con recorrido de la página y explicación de POO.
 
 ---
 
