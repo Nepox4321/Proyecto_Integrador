@@ -33,7 +33,6 @@
       <div class="collapse navbar-collapse" id="anNav">
         <ul class="navbar-nav mx-auto">
           <li class="nav-item"><a class="nav-link" data-active="inicio" href="{{ url_for('inicio') }}">Inicio</a></li>
-          <li class="nav-item"><a class="nav-link" data-active="doblaje" href="{{ url_for('doblaje') }}">Estudio de voz</a></li>
           {% if session_user %}
           <li class="nav-item"><a class="nav-link" data-active="flota" href="{{ url_for('catalogo') }}">Flota <span class="chev">▾</span></a></li>
           <li class="nav-item"><a class="nav-link" data-active="alquilar" href="{{ url_for('catalogo') }}">Alquilar <span class="chev">▾</span></a></li>
@@ -42,7 +41,6 @@
           <li class="nav-item"><a class="nav-link an4-navcta" data-active="perfil" href="{{ url_for('perfil') }}">Mi Cuenta</a></li>
           {% else %}
           <li class="nav-item"><a class="nav-link" data-active="flota" href="{{ url_for('catalogo') }}">Catálogo</a></li>
-          <li class="nav-item"><a class="nav-link" data-active="doblaje" href="{{ url_for('doblaje') }}">Estudio de voz</a></li>
           {% endif %}
         </ul>
 

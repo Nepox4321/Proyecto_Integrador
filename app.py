@@ -205,12 +205,6 @@ def inicio():
                            total_usuarios=total_usuarios)
 
 
-@app.route('/doblaje')
-def doblaje():
-    """Editor local para sincronizar una narracion con un video."""
-    return render_template('doblaje.html')
-
-
 @app.route('/flota')
 def catalogo():
     """Catálogo completo de la flota."""
